@@ -1,0 +1,61 @@
+﻿@inherits LayoutComponentBase
+@inject IJSRuntime JS
+
+
+<MudThemeProvider @bind-IsDarkMode="_isDarkMode" Theme=" _theme" />
+
+<MudPopoverProvider />
+
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1" Color="Color.Inherit">
+        <MudText Typo="Typo.h5" Color="Color.Primary" Class="ml-5">Fake Data Maker</MudText>
+        <MudSpacer />
+        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Default" Size="Size.Medium" Edge="Edge.End" Href="https://github.com/andredobbss" target="_blank" />
+        <MudIconButton Icon="@Icons.Custom.Brands.LinkedIn" Color="Color.Default" Size="Size.Medium" Edge="Edge.End" Href="https://www.linkedin.com/in/andre-dobbss" target="_blank" />
+    </MudAppBar>
+    <MudMainContent>
+        <MudContainer>
+            @Body
+        </MudContainer>
+    </MudMainContent>
+
+</MudLayout>
+
+@code {
+
+    private bool _isDarkMode = true;
+
+    private MudTheme _theme = new()
+        {
+            Typography = new Typography()
+            {
+                Default = new DefaultTypography()
+                {
+                    FontFamily = new[] { "Montserrat", "sans-serif" },
+                },
+            },
+
+            PaletteDark = new PaletteDark()
+            {
+                Primary = Colors.Cyan.Darken1,
+                Secondary = Colors.Orange.Darken3,
+            },
+
+            LayoutProperties = new LayoutProperties()
+            {
+                DrawerWidthLeft = "260px",
+                DrawerWidthRight = "300px"
+            }
+        };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("onBeforeUnloadHandler.attachUnloadListener");
+        }
+    }
+
+}

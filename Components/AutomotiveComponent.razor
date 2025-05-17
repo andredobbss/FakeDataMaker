@@ -1,0 +1,136 @@
+﻿@inject IAutomotiveFaker automotiveFaker
+@inject ISnackbar Snackbar
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject IFileExporterService _fileExporterService
+
+@if (_automotiveData is null)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    <MudDataGrid T="AutomotiveModel" Items="_automotiveData" Dense="true" Hover="true" Bordered="true" Striped="true" ColumnResizeMode="ResizeMode.Container">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Automotive Data</MudText>
+            <MudSpacer />
+            <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Custom.FileFormats.FileDocument" Color="Color.Success" OnClick="ExportCsv">Export .csv</MudButton>
+                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Custom.FileFormats.FileExcel" Color="Color.Success" OnClick="ExportXlsx">Export .xlsx</MudButton>
+                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Custom.FileFormats.FileCode" Color="Color.Success" OnClick="ExportSql">Export .sql</MudButton>
+            </MudStack>
+        </ToolBarContent>
+
+
+        <Columns>
+            <PropertyColumn Property="x => x.Manufacturer" Title="Manufacturer" />
+            <PropertyColumn Property="x => x.Model" Title="Model" />
+            <PropertyColumn Property="x => x.VehicleType" Title="Vehicle Type" />
+            <PropertyColumn Property="x => x.EngineType" Title="Engine" />
+            <PropertyColumn Property="x => x.Horsepower" Title="HP" />
+            <PropertyColumn Property="x => x.Year" Title="Year" />
+
+            <PropertyColumn Property="x => x.Price" Title="Price">
+                <CellTemplate>
+                    @($"{regionInfo.CurrencySymbol} {context.Item.Price:N2}")
+                </CellTemplate>
+            </PropertyColumn>
+
+            <PropertyColumn Property="x => x.Color" Title="Color" />
+            <PropertyColumn Property="x => x.NumberOfDoors" Title="# Doors" />
+            <PropertyColumn Property="x => x.IsElectric" Title="Electric">
+                <CellTemplate>
+                    @(context.Item.IsElectric ? "Yes" : "No")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.LicensePlate" Title="Plate" />
+            <PropertyColumn Property="x => x.VIN" Title="VIN" />
+
+            <PropertyColumn Property="x => x.RegistrationDate" Title="Registered">
+                <CellTemplate>
+                    @context.Item.RegistrationDate.ToShortDateString()
+                </CellTemplate>
+            </PropertyColumn>
+
+            <PropertyColumn Property="x => x.FuelEfficiencyKmPerL" Title="Km/L" />
+            <PropertyColumn Property="x => x.CountryOfOrigin" Title="Country" />
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="AutomotiveModel" />
+        </PagerContent>
+    </MudDataGrid>
+}
+
+
+
+@code {
+    IEnumerable<AutomotiveModel> _automotiveData = [];
+
+    RegionInfo? regionInfo = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+
+            int Quantity = await LocalStorage.GetItemAsync<int>("quantity");
+
+            string? Language = await LocalStorage.GetItemAsync<string>("selectedLanguage");
+
+            _automotiveData = automotiveFaker.GenerateAutomotive(Quantity, Language!).ToList();
+
+            if (Language!.Contains("_"))
+                Language = Language.Replace("_", "-");
+
+            regionInfo = new RegionInfo(Language);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, MudBlazor.Severity.Error);
+            _automotiveData = Enumerable.Empty<AutomotiveModel>();
+        }
+        await Task.CompletedTask;
+    }
+
+    private async Task ExportCsv()
+    {
+        try
+        {
+            await _fileExporterService.ExportCsvAsync(_automotiveData, "Automotive");
+           
+            Snackbar.Add("CSV file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error exporting CSV: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportXlsx()
+    {
+        try
+        {
+            await _fileExporterService.ExportXlsxAsync(_automotiveData, "Automotive");
+
+            Snackbar.Add("XLSX file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error exporting Excel: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportSql()
+    {
+        try
+        {
+            await _fileExporterService.ExportSqlAsync(_automotiveData, "Automotive");
+
+            Snackbar.Add("SQL script exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error exporting SQL: {ex.Message}", Severity.Error);
+        }
+    }
+
+}

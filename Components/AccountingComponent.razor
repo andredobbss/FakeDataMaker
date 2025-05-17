@@ -1,0 +1,161 @@
+﻿@inject IAccountingFaker _accountingFaker
+@inject ISnackbar Snackbar
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject IFileExporterService _fileExporterService
+
+
+@if (_accountingData is null)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    <MudDataGrid T="AccountingModel" Items="_accountingData" Dense="true" Hover="true" Bordered="true" Striped="true" ColumnResizeMode="ResizeMode.Container">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Accounting Data</MudText>
+            <MudSpacer />
+            <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Custom.FileFormats.FileDocument" Color="Color.Success" OnClick="ExportCsv">Export .csv</MudButton>
+                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Custom.FileFormats.FileExcel" Color="Color.Success" OnClick="ExportXlsx">Export .xlsx</MudButton>
+                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Custom.FileFormats.FileCode" Color="Color.Success" OnClick="ExportSql">Export .sql</MudButton>
+            </MudStack>
+        </ToolBarContent>
+
+        <Columns>
+            <PropertyColumn Property="c => c.ClientName" Title="Client Name" />
+            <PropertyColumn Property="c => c.AccountNumber" Title="Account Number" />
+            <PropertyColumn Property="c => c.AccountType" Title="Account Type" />
+
+            <PropertyColumn Property="c => c.AccountBalance" Title="Balance">
+                <CellTemplate>
+                    @($"{regionInfo.CurrencySymbol} {context.Item.AccountBalance:N2}")
+                </CellTemplate>
+            </PropertyColumn>
+
+
+            <PropertyColumn Property="c => c.OpeningDate" Title="Opening Date">
+                <CellTemplate>
+                    @(context.Item.OpeningDate.ToShortDateString())
+                </CellTemplate>
+            </PropertyColumn>
+
+
+            <PropertyColumn Property="c => c.LastTransactionDate" Title="Last Transaction">
+                <CellTemplate>
+                    @(context.Item.LastTransactionDate.ToShortDateString())
+                </CellTemplate>
+            </PropertyColumn>
+
+
+            <PropertyColumn Property="c => c.Currency" Title="Currency" />
+            <PropertyColumn Property="c => c.TaxId" Title="Tax ID" />
+            <PropertyColumn Property="c => c.Country" Title="Country" />
+
+            <PropertyColumn Property="c => c.AccountantName" Title="Accountant" />
+
+
+            <PropertyColumn Property="c => c.AnnualRevenue" Title="Annual Revenue">
+                <CellTemplate>
+                    @($"{regionInfo.CurrencySymbol} {context.Item.AnnualRevenue:N2}")
+                </CellTemplate>
+            </PropertyColumn>
+
+            <PropertyColumn Property="c => c.MonthlyExpenses" Title="Monthly Expenses">
+                <CellTemplate>
+                    @($"{regionInfo.CurrencySymbol} {context.Item.MonthlyExpenses:N2}")
+                </CellTemplate>
+            </PropertyColumn>
+
+
+            <PropertyColumn Property="c => c.LedgerType" Title="Ledger Type" />
+            <PropertyColumn Property="c => c.Status" Title="Status" />
+            <PropertyColumn Property="c => c.Notes" Title="Notes" />
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="AccountingModel" />
+        </PagerContent>
+    </MudDataGrid>
+
+}
+
+
+
+@code {
+
+    private bool isLoading = true;
+
+    private IEnumerable<AccountingModel>? _accountingData = null;
+
+    RegionInfo? regionInfo = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+
+            int Quantity = await LocalStorage.GetItemAsync<int>("quantity");
+
+            string? Language = await LocalStorage.GetItemAsync<string>("selectedLanguage");
+
+            _accountingData = _accountingFaker.GenerateAccounting(Quantity, Language!).ToList();
+
+            if (Language!.Contains("_"))
+                Language = Language.Replace("_", "-");
+
+            regionInfo = new RegionInfo(Language);
+
+
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, MudBlazor.Severity.Error);
+            _accountingData = Enumerable.Empty<AccountingModel>();
+        }
+        await Task.CompletedTask;
+        isLoading = false;
+    }
+
+    private async Task ExportCsv()
+    {
+        try
+        {
+            await _fileExporterService.ExportCsvAsync(_accountingData, "Accounting");
+
+            Snackbar.Add("CSV file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error exporting CSV: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportXlsx()
+    {
+        try
+        {
+            await _fileExporterService.ExportXlsxAsync(_accountingData, "Accounting");
+
+            Snackbar.Add("XLSX file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error exporting Excel: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportSql()
+    {
+        try
+        {
+            await _fileExporterService.ExportSqlAsync(_accountingData, "Accounting");
+
+            Snackbar.Add("SQL script exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error exporting SQL: {ex.Message}", Severity.Error);
+        }
+    }
+
+}

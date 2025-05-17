@@ -1,0 +1,152 @@
+﻿@inject IAgricultureFaker _agricultureFaker
+@inject ISnackbar Snackbar
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject IFileExporterService _fileExporterService
+
+@if (_agricultureData is null)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+
+    <MudDataGrid T="AgricultureModel" Items="_agricultureData" Dense="true" Hover="true" Bordered="true" Striped="true" ColumnResizeMode="ResizeMode.Container">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Agriculture Data</MudText>
+            <MudSpacer />
+            <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Custom.FileFormats.FileDocument" Color="Color.Success" OnClick="ExportCsv">Export .csv</MudButton>
+                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Custom.FileFormats.FileExcel" Color="Color.Success" OnClick="ExportXlsx">Export .xlsx</MudButton>
+                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Custom.FileFormats.FileCode" Color="Color.Success" OnClick="ExportSql">Export .sql</MudButton>
+            </MudStack>
+        </ToolBarContent>
+        
+        <Columns>
+            <PropertyColumn Property="x => x.FarmName" Title="Farm Name" />
+            <PropertyColumn Property="x => x.CropType" Title="Crop Type" />
+            <PropertyColumn Property="x => x.FarmerName" Title="Farmer Name" />
+            <PropertyColumn Property="x => x.LandAreaHectares" Title="Land Area (ha)" />
+            <PropertyColumn Property="x => x.NumberOfEmployees" Title="Employees" />
+
+            <PropertyColumn Property="x => x.AnnualRevenue" Title="Revenue">
+                <CellTemplate>
+                    @($"{regionInfo.CurrencySymbol} {context.Item.AnnualRevenue:N2}")
+                </CellTemplate>
+            </PropertyColumn>
+
+            <PropertyColumn Property="x => x.MonthlyCost" Title="Monthly Cost">
+                <CellTemplate>
+                    @($"{regionInfo.CurrencySymbol} {context.Item.MonthlyCost:N2}")
+                </CellTemplate>
+            </PropertyColumn>
+
+            <PropertyColumn Property="x => x.Region" Title="Region" />
+            <PropertyColumn Property="x => x.Country" Title="Country" />
+            <PropertyColumn Property="x => x.SoilType" Title="Soil Type" />
+
+            <PropertyColumn Property="x => x.PlantingDate" Title="Planting Date">
+                <CellTemplate>
+                    @context.Item.PlantingDate.ToShortDateString()
+                </CellTemplate>
+            </PropertyColumn>
+
+            <PropertyColumn Property="x => x.HarvestDate" Title="Harvest Date">
+                <CellTemplate>
+                    @context.Item.HarvestDate.ToShortDateString()
+                </CellTemplate>
+            </PropertyColumn>
+
+            <PropertyColumn Property="x => x.IsOrganic" Title="Is Organic">
+                <CellTemplate>
+                    @(context.Item.IsOrganic ? "Yes" : "No")
+                </CellTemplate>
+            </PropertyColumn>
+
+            <PropertyColumn Property="x => x.IrrigationType" Title="Irrigation" />
+            <PropertyColumn Property="x => x.Notes" Title="Notes" />
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="AgricultureModel" />
+        </PagerContent>
+    </MudDataGrid>
+
+}
+
+@code
+{
+
+
+
+    private IEnumerable<AgricultureModel> _agricultureData = [];
+
+    RegionInfo? regionInfo = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+
+            int Quantity = await LocalStorage.GetItemAsync<int>("quantity");
+
+            string? Language = await LocalStorage.GetItemAsync<string>("selectedLanguage");
+
+            _agricultureData = _agricultureFaker.GenerateAgriculture(Quantity, Language!).ToList();
+
+            if (Language!.Contains("_"))
+                Language = Language.Replace("_", "-");
+
+            regionInfo = new RegionInfo(Language);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, MudBlazor.Severity.Error);
+            _agricultureData = Enumerable.Empty<AgricultureModel>();
+        }
+        await Task.CompletedTask;
+    }
+
+    private async Task ExportCsv()
+    {
+        try
+        {
+            await _fileExporterService.ExportCsvAsync(_agricultureData, "Agriculture");
+            
+            Snackbar.Add("CSV file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error exporting CSV: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportXlsx()
+    {
+        try
+        {
+            await _fileExporterService.ExportXlsxAsync(_agricultureData, "Agriculture");
+
+            Snackbar.Add("XLSX file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error exporting Excel: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportSql()
+    {
+        try
+        {
+            await _fileExporterService.ExportSqlAsync(_agricultureData, "Agriculture");
+
+            Snackbar.Add("SQL script exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error exporting SQL: {ex.Message}", Severity.Error);
+        }
+    }
+
+}
+
+

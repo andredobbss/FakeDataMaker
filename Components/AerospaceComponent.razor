@@ -1,0 +1,154 @@
+﻿@inject IAerospaceFaker _aerospaceFaker
+@inject ISnackbar Snackbar
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject IFileExporterService _fileExporterService
+
+
+@if (_aerospaceData is null)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    <MudDataGrid T="AerospaceModel" Items="_aerospaceData" Dense="true" Hover="true" Bordered="true" Striped="true" ColumnResizeMode="ResizeMode.Container">
+
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Aerospace Data</MudText>
+            <MudSpacer />
+            <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Custom.FileFormats.FileDocument" Color="Color.Success" OnClick="ExportCsv">Export .csv</MudButton>
+                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Custom.FileFormats.FileExcel" Color="Color.Success" OnClick="ExportXlsx">Export .xlsx</MudButton>
+                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Custom.FileFormats.FileCode" Color="Color.Success" OnClick="ExportSql">Export .sql</MudButton>
+            </MudStack>
+        </ToolBarContent>
+
+        <Columns>
+            <PropertyColumn Property="x => x.AircraftModel" Title="Aircraft Model" />
+            <PropertyColumn Property="x => x.Manufacturer" Title="Manufacturer" />
+            <PropertyColumn Property="x => x.EngineType" Title="Engine Type" />
+
+            <PropertyColumn Property="x => x.WingspanMeters" Title="Wingspan (m)">
+                <CellTemplate>
+                    @context.Item.WingspanMeters.ToString("F1")
+                </CellTemplate>
+            </PropertyColumn>
+
+            <PropertyColumn Property="x => x.LengthMeters" Title="Length (m)">
+                <CellTemplate>
+                    @context.Item.LengthMeters.ToString("F1")
+                </CellTemplate>
+            </PropertyColumn>
+
+            <PropertyColumn Property="x => x.MaxSpeedKmH" Title="Max Speed (km/h)" />
+            <PropertyColumn Property="x => x.RangeKm" Title="Range (km)" />
+            <PropertyColumn Property="x => x.CrewSize" Title="Crew Size" />
+            <PropertyColumn Property="x => x.PassengerCapacity" Title="Passenger Capacity" />
+
+            <PropertyColumn Property="x => x.FirstFlightDate" Title="First Flight">
+                <CellTemplate>
+                    @context.Item.FirstFlightDate.ToShortDateString()
+                </CellTemplate>
+            </PropertyColumn>
+
+            <PropertyColumn Property="x => x.CertificationDate" Title="Certification">
+                <CellTemplate>
+                    @context.Item.CertificationDate.ToShortDateString()
+                </CellTemplate>
+            </PropertyColumn>
+
+            <PropertyColumn Property="x => x.LastMaintenanceDate" Title="Last Maintenance">
+                <CellTemplate>
+                    @context.Item.LastMaintenanceDate.ToShortDateString()
+                </CellTemplate>
+            </PropertyColumn>
+
+            <PropertyColumn Property="x => x.CountryOfOrigin" Title="Country" />
+
+            <PropertyColumn Property="x => x.InProduction" Title="In Production">
+                <CellTemplate>
+                    @(context.Item.InProduction ? "Yes" : "No")
+                </CellTemplate>
+            </PropertyColumn>
+
+            <PropertyColumn Property="x => x.Description" Title="Description" />
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="AerospaceModel" />
+        </PagerContent>
+    </MudDataGrid>
+
+}
+
+
+@code {
+
+    IEnumerable<AerospaceModel> _aerospaceData = [];
+
+    RegionInfo? regionInfo = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+
+            int Quantity = await LocalStorage.GetItemAsync<int>("quantity");
+
+            string? Language = await LocalStorage.GetItemAsync<string>("selectedLanguage");
+
+            _aerospaceData = _aerospaceFaker.GenerateAerospace(Quantity, Language!).ToList();
+
+            if (Language!.Contains("_"))
+                Language = Language.Replace("_", "-");
+
+            regionInfo = new RegionInfo(Language);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, MudBlazor.Severity.Error);
+            _aerospaceData = Enumerable.Empty<AerospaceModel>();
+        }
+        await Task.CompletedTask;
+    }
+
+    private async Task ExportCsv()
+    {
+        try
+        {
+            await _fileExporterService.ExportCsvAsync(_aerospaceData, "Aerospace");
+
+            Snackbar.Add("CSV file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error exporting CSV: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportXlsx()
+    {
+        try
+        {
+            await _fileExporterService.ExportXlsxAsync(_aerospaceData, "Aerospace");
+
+            Snackbar.Add("XLSX file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error exporting Excel: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportSql()
+    {
+        try
+        {
+            await _fileExporterService.ExportSqlAsync(_aerospaceData, "Aerospace");
+
+            Snackbar.Add("SQL script exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error exporting SQL: {ex.Message}", Severity.Error);
+        }
+    }
+}

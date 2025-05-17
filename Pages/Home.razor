@@ -1,0 +1,133 @@
+﻿@page "/"
+@layout MainLayout
+@inject ILanguages _languages
+@inject ISectors _sectors
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+
+
+<PageTitle>Home</PageTitle>
+
+
+<MudGrid Justify="Justify.Center" Class="mud-width-full pt-12">
+
+    <MudPaper Class="mud-width-full pa-5">
+
+        <div class="d-flex mt-sm-5">
+
+            <MudSelect T="string" Label="Select Language" @bind-Value="_selectedLanguage">
+                @foreach (var lang in _languagesDict)
+                {
+                    <MudSelectItem Value="@lang.Value">@lang.Key</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudSpacer />
+
+            <MudSelect T="string" Label="Select Sector" @bind-Value="_selectedSector">
+                @foreach (var sector in _sectorsDict)
+                {
+                    <MudSelectItem Value="@sector.Value">@sector.Key</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudSpacer />
+
+            <MudNumericField T="int" @bind-Value="_quantity" Label="Number of Records" Variant="Variant.Text" Min="10" Max="1000000" />
+
+            <MudSpacer />
+
+            <MudButton OnClick="GenerateData" Variant="Variant.Filled" Color="Color.Primary">Generate Data</MudButton>
+
+
+        </div>
+
+    </MudPaper>
+
+    <br />
+
+
+    <MudPaper Class="mud-width-full pa-8">
+
+        <MudItem>
+            @if (_showData)
+            {
+
+                @if (isLoading)
+                {
+
+                    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
+
+                }
+                else
+                {
+                    @switch (_selectedSector)
+                    {
+                        case "accounting":
+                            <AccountingComponent @key="_componentKey" />
+                            break;
+                        case "aerospace":
+                            <AerospaceComponent @key="_componentKey" />
+                            break;
+                        case "agriculture":
+                            <AgricultureComponent @key="_componentKey" />
+                            break;
+                        case "automotive":
+                            <AutomotiveComponent @key="_componentKey" />
+                            break;
+                        default:
+                            <div>Selecione um setor para gerar dados.</div>
+                            break;
+                    }
+                }
+            }
+        </MudItem>
+
+    </MudPaper>
+
+</MudGrid>
+
+@code {
+
+    private bool isLoading;
+
+    private Dictionary<string, string> _languagesDict = new();
+    private Dictionary<string, string> _sectorsDict = new();
+
+    private string _selectedLanguage { get; set; } = null!;
+    private string _selectedSector { get; set; } = null!;
+
+    private int _quantity;
+
+    private bool _showData = false;
+
+    private Guid _componentKey;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        _languagesDict = _languages.GetLanguages().ToDictionary(k => k.Key, v => v.Value);
+        _sectorsDict = _sectors.GetSectors().ToDictionary(k => k.Key, v => v.Value);
+        await Task.CompletedTask;
+
+    }
+
+    private async Task GenerateData()
+    {
+        if (!string.IsNullOrWhiteSpace(_selectedLanguage) && !string.IsNullOrWhiteSpace(_selectedSector))
+        {
+            await Task.Delay(2000);
+            await LocalStorage.RemoveItemsAsync(new[] { "selectedLanguage", "quantity" });
+            await LocalStorage.SetItemAsync("selectedLanguage", _selectedLanguage);
+            await LocalStorage.SetItemAsync("quantity", _quantity);
+            _componentKey = Guid.NewGuid();
+
+            _showData = false;
+            StateHasChanged();
+
+            _showData = true;
+            StateHasChanged();
+            isLoading = false;
+        }
+    }
+}
