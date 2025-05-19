@@ -10,6 +10,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="docs\docs\**" />
+    <Content Remove="docs\docs\**" />
+    <EmbeddedResource Remove="docs\docs\**" />
+    <None Remove="docs\docs\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BlazorDownloadFile" Version="2.4.0.2" />
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageReference Include="Bogus" Version="35.6.3" />
