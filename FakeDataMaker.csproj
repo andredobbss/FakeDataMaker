@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <StaticWebAssetBasePath>FakeDataMaker</StaticWebAssetBasePath>
+    <BlazorWebAssemblyLoadAllGlobalizationData>true</BlazorWebAssemblyLoadAllGlobalizationData>
+    <BlazorEnableWebAssemblyRuntimeIntegrity>false</BlazorEnableWebAssemblyRuntimeIntegrity>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
