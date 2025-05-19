@@ -1,0 +1,144 @@
+﻿@inject ITransportationFaker _transportationFaker
+@inject ISnackbar _snackbar
+@inject ILocalStorageService _localStorage
+@inject IFileExporterService _fileExporterService
+
+@if (isLoading)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    <MudDataGrid T="TransportationModel" Items="transportationData" Dense="true" Hover="true" Bordered="true" Striped="true" ColumnResizeMode="ResizeMode.Container">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Transportation Data</MudText>
+            <MudSpacer />
+            <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileDocument" OnClick="ExportCsv">Export .csv</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileExcel" OnClick="ExportXlsx">Export .xlsx</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileCode" OnClick="ExportSql">Export .sql</MudButton>
+            </MudStack>
+        </ToolBarContent>
+
+        <Columns>
+            <PropertyColumn Property="x => x.VehicleId" Title="ID" />
+            <PropertyColumn Property="x => x.VehicleType" Title="Type" />
+            <PropertyColumn Property="x => x.LicensePlate" Title="License Plate" />
+            <PropertyColumn Property="x => x.DriverName" Title="Driver" />
+            <PropertyColumn Property="x => x.Route" Title="Route" />
+            <PropertyColumn Property="x => x.Origin" Title="Origin" />
+            <PropertyColumn Property="x => x.Destination" Title="Destination" />
+            <PropertyColumn Property="x => x.DistanceKm" Title="Distance (km)">
+                <CellTemplate>
+                    @($"{context.Item.DistanceKm:N1}")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.DepartureTime" Title="Departure">
+                <CellTemplate>
+                    @context.Item.DepartureTime.ToString("g")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.ArrivalTime" Title="Arrival">
+                <CellTemplate>
+                    @context.Item.ArrivalTime.ToString("g")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.Status" Title="Status" />
+            <PropertyColumn Property="x => x.CarrierCompany" Title="Carrier" />
+            <PropertyColumn Property="x => x.CargoWeightKg" Title="Cargo (kg)" />
+            <PropertyColumn Property="x => x.IsDelayed" Title="Delayed">
+                <CellTemplate>
+                    @(context.Item.IsDelayed ? "Yes" : "No")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.Comments" Title="Comments" />
+        </Columns>
+
+        <PagerContent>
+            <MudDataGridPager T="TransportationModel" />
+        </PagerContent>
+    </MudDataGrid>
+}
+
+
+@code {
+
+    private bool isLoading = false;
+
+    private IEnumerable<TransportationModel> transportationData = [];
+
+    RegionInfo? regionInfo = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+
+            int Quantity = await _localStorage.GetItemAsync<int>("quantity");
+
+            string? Language = await _localStorage.GetItemAsync<string>("selectedLanguage");
+
+            await Task.Delay(1000);
+
+            transportationData = await _transportationFaker.GenerateTransportationAsync(Quantity, Language!);
+
+            Language = Language!.ReplaceLanguage(Language!);
+
+            regionInfo = new RegionInfo(Language);
+
+            isLoading = false;
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add(ex.Message, MudBlazor.Severity.Error);
+            transportationData = Enumerable.Empty<TransportationModel>();
+        }
+        await Task.CompletedTask;
+
+    }
+
+    private async Task ExportCsv()
+    {
+        try
+        {
+            await _fileExporterService.ExportCsvAsync(transportationData, "Transportation");
+
+            _snackbar.Add("CSV file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting CSV: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportXlsx()
+    {
+        try
+        {
+            await _fileExporterService.ExportXlsxAsync(transportationData, "Transportation");
+
+            _snackbar.Add("XLSX file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting Excel: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportSql()
+    {
+        try
+        {
+            await _fileExporterService.ExportSqlAsync(transportationData, "Transportation");
+
+            _snackbar.Add("SQL script exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting SQL: {ex.Message}", Severity.Error);
+        }
+    }
+
+
+}

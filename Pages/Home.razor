@@ -1,21 +1,22 @@
-﻿@page "/"
+﻿@page "/home"
 @layout MainLayout
 @inject ILanguages _languages
 @inject ISectors _sectors
-@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject ILocalStorageService _localStorage
+@inject IDialogService DialogService
 
 
-<PageTitle>Home</PageTitle>
+@* <PageTitle>Fake Data Maker</PageTitle> *@
 
 
-<MudGrid Justify="Justify.Center" Class="mud-width-full pt-12">
+<MudGrid Justify="Justify.Center" Class="mud-width-full pa-12">
 
     <MudPaper Class="mud-width-full pa-5">
 
         <div class="d-flex mt-sm-5">
 
-            <MudSelect T="string" Label="Select Language" @bind-Value="_selectedLanguage">
-                @foreach (var lang in _languagesDict)
+            <MudSelect T="string" Label="Select Language" Margin=Margin.Dense FitContent=false Dense=true Variant="Variant.Outlined" @bind-Value="selectedLanguage" Required=true>
+                @foreach (var lang in languagesDictionary)
                 {
                     <MudSelectItem Value="@lang.Value">@lang.Key</MudSelectItem>
                 }
@@ -23,61 +24,139 @@
 
             <MudSpacer />
 
-            <MudSelect T="string" Label="Select Sector" @bind-Value="_selectedSector">
-                @foreach (var sector in _sectorsDict)
+            <MudSelect T="string" Label="Select Sector" Margin=Margin.Dense FitContent=false Dense=true Variant="Variant.Outlined" @bind-Value="selectedSector" Required=true>
+                @foreach (var sector in sectorsDictionary)
                 {
                     <MudSelectItem Value="@sector.Value">@sector.Key</MudSelectItem>
                 }
             </MudSelect>
-
+            <MudIconButton Icon="@Icons.Material.Filled.QuestionMark" Color="Color.Primary" Size="Size.Small" Edge="Edge.End" OnClick="ShowSectorsModal" />
             <MudSpacer />
 
-            <MudNumericField T="int" @bind-Value="_quantity" Label="Number of Records" Variant="Variant.Text" Min="10" Max="1000000" />
-
+            <MudNumericField T="int" @bind-Value="quantity" Margin=Margin.Dense Label="Number of Records" Variant="Variant.Outlined" Min="10" Max="1000000" />
+           
             <MudSpacer />
 
             <MudButton OnClick="GenerateData" Variant="Variant.Filled" Color="Color.Primary">Generate Data</MudButton>
-
 
         </div>
 
     </MudPaper>
 
-    <br />
-
+    <MudDivider Class="my-6" />
 
     <MudPaper Class="mud-width-full pa-8">
 
         <MudItem>
-            @if (_showData)
+            @if (showData)
             {
-
-                @if (isLoading)
+                @switch (selectedSector)
                 {
-
-                    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
-
-                }
-                else
-                {
-                    @switch (_selectedSector)
-                    {
-                        case "accounting":
-                            <AccountingComponent @key="_componentKey" />
-                            break;
-                        case "aerospace":
-                            <AerospaceComponent @key="_componentKey" />
-                            break;
-                        case "agriculture":
-                            <AgricultureComponent @key="_componentKey" />
-                            break;
-                        case "automotive":
-                            <AutomotiveComponent @key="_componentKey" />
-                            break;
-                        default:
-                            <div>Selecione um setor para gerar dados.</div>
-                            break;
-                    }
+                    case "accounting":
+                        <AccountingComponent @key="componentKey" />
+                        break;
+                    case "aerospace":
+                        <AerospaceComponent @key="componentKey" />
+                        break;
+                    case "agriculture":
+                        <AgricultureComponent @key="componentKey" />
+                        break;
+                    case "automotive":
+                        <AutomotiveComponent @key="componentKey" />
+                        break;
+                    case "biotechnology":
+                        <BiotechnologyComponent @key="componentKey" />
+                        break;
+                    case "civilConstruction":
+                        <CivilConstructionComponent @key="componentKey" />
+                        break;
+                    case "consumerGoods":
+                        <ConsumerGoodsComponent @key="componentKey" />
+                        break;
+                    case "contability":
+                        <ContabilityComponent @key="componentKey" />
+                        break;
+                    case "cybersecurity":
+                        <CybersecurityComponent @key="componentKey" />
+                        break;
+                    case "ecommerce":
+                        <EcommerceComponent @key="componentKey" />
+                        break;
+                    case "economy":
+                        <EconomyComponent @key="componentKey" />
+                        break;
+                    case "education":
+                        <EducationComponent @key="componentKey" />
+                        break;
+                    case "energy":
+                        <EnergyComponent @key="componentKey" />
+                        break;
+                    case "entertainment":
+                        <EntertainmentComponent @key="componentKey" />
+                        break;
+                    case "environmental":
+                        <EnvironmentalServiceComponent @key="componentKey" />
+                        break;     
+                    case "finance":
+                        <FinanceComponent @key="componentKey" />
+                        break;
+                    case "food":
+                        <FoodComponent @key="componentKey" />
+                        break;
+                    case "publicSector":
+                        <GovernmentPublicSectorComponent @key="componentKey" />
+                        break;
+                    case "healthcare":
+                        <HealthcareComponent @key="componentKey" />
+                        break;
+                    case "hospitality":
+                        <HospitalityComponent @key="componentKey" />
+                        break;
+                    case "informationTechnology":
+                        <InformationTechnologyComponent @key="componentKey" />
+                        break;
+                    case "insurance":
+                        <InsuranceComponent @key="componentKey" />
+                        break;
+                    case "legalServices":
+                        <LegalServicesComponent @key="componentKey" />
+                        break;
+                    case "logistics":
+                        <LogisticsComponent @key="componentKey" />
+                        break;
+                    case "manufacturing":
+                        <ManufacturingComponent @key="componentKey" />
+                        break;
+                    case "marketing":
+                        <MarketingComponent @key="componentKey" />
+                        break;
+                    case "mediaPublishing":
+                        <MediaPublishingComponent @key="componentKey" />
+                        break;
+                    case "mining":
+                        <MiningComponent @key="componentKey" />
+                        break;
+                    case "nonprofit":
+                        <NonprofitComponent @key="componentKey" />
+                        break;
+                    case "realState":
+                        <RealEstateComponent @key="componentKey" />
+                        break;
+                    case "retail":
+                        <RetailComponent @key="componentKey" />
+                        break;
+                    case "sportsRecreation":
+                        <SportsRecreationComponent @key="componentKey" />
+                        break;
+                    case "telecommunications":
+                        <TelecommunicationsComponent @key="componentKey" />
+                        break;
+                    case "transportation":
+                        <TransportationComponent @key="componentKey" />
+                        break;
+                    default:
+                        <div>Select a sector to generate data.</div>
+                        break;
                 }
             }
         </MudItem>
@@ -88,46 +167,49 @@
 
 @code {
 
-    private bool isLoading;
+    private Dictionary<string, string> languagesDictionary = [];
+    private Dictionary<string, string> sectorsDictionary = [];
 
-    private Dictionary<string, string> _languagesDict = new();
-    private Dictionary<string, string> _sectorsDict = new();
+    private string selectedLanguage { get; set; } = null!;
+    private string selectedSector { get; set; } = null!;
 
-    private string _selectedLanguage { get; set; } = null!;
-    private string _selectedSector { get; set; } = null!;
+    private int quantity;
 
-    private int _quantity;
+    private bool showData = false;
 
-    private bool _showData = false;
-
-    private Guid _componentKey;
-
+    private Guid componentKey;
 
     protected override async Task OnInitializedAsync()
     {
 
-        _languagesDict = _languages.GetLanguages().ToDictionary(k => k.Key, v => v.Value);
-        _sectorsDict = _sectors.GetSectors().ToDictionary(k => k.Key, v => v.Value);
+        languagesDictionary = _languages.GetLanguages().ToDictionary(k => k.Key, v => v.Value);
+        sectorsDictionary = _sectors.GetSectors().ToDictionary(k => k.Key, v => v.Value);
         await Task.CompletedTask;
 
     }
 
     private async Task GenerateData()
     {
-        if (!string.IsNullOrWhiteSpace(_selectedLanguage) && !string.IsNullOrWhiteSpace(_selectedSector))
+        if (!string.IsNullOrWhiteSpace(selectedLanguage) && !string.IsNullOrWhiteSpace(selectedSector))
         {
-            await Task.Delay(2000);
-            await LocalStorage.RemoveItemsAsync(new[] { "selectedLanguage", "quantity" });
-            await LocalStorage.SetItemAsync("selectedLanguage", _selectedLanguage);
-            await LocalStorage.SetItemAsync("quantity", _quantity);
-            _componentKey = Guid.NewGuid();
 
-            _showData = false;
+            await _localStorage.RemoveItemsAsync(new[] { "selectedLanguage", "quantity" });
+            await _localStorage.SetItemAsync("selectedLanguage", selectedLanguage);
+            await _localStorage.SetItemAsync("quantity", quantity);
+            componentKey = Guid.NewGuid();
+
+            showData = false;
             StateHasChanged();
 
-            _showData = true;
+            showData = true;
             StateHasChanged();
-            isLoading = false;
         }
+    }
+
+    private async Task ShowSectorsModal()
+    {
+        var parameters = new DialogParameters();
+        var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true };
+        await DialogService.ShowAsync<SetorInfoDialog>("Supported Sectors", parameters, options);
     }
 }

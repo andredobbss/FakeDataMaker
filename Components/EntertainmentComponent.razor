@@ -1,0 +1,139 @@
+﻿@inject IEntertainmentFaker _entertainmentFaker
+@inject ISnackbar _snackbar
+@inject ILocalStorageService _localStorage
+@inject IFileExporterService _fileExporterService
+
+@if (isLoading)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    <MudDataGrid T="EntertainmentModel" Items="entertainmentData" Dense="true" Hover="true" Bordered="true" Striped="true" ColumnResizeMode="ResizeMode.Container">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Entertainment Data</MudText>
+            <MudSpacer />
+            <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileDocument" OnClick="ExportCsv">Export .csv</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileExcel" OnClick="ExportXlsx">Export .xlsx</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileCode" OnClick="ExportSql">Export .sql</MudButton>
+            </MudStack>
+        </ToolBarContent>
+
+        <Columns>
+            <PropertyColumn Property="x => x.Title" Title="Title" />
+            <PropertyColumn Property="x => x.Genre" Title="Genre" />
+            <PropertyColumn Property="x => x.Platform" Title="Platform" />
+            <PropertyColumn Property="x => x.Director" Title="Director" />
+            <PropertyColumn Property="x => x.Producer" Title="Producer" />
+            <PropertyColumn Property="x => x.ReleaseDate" Title="Release">
+                <CellTemplate>
+                    @context.Item.ReleaseDate.ToShortDateString()
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.Rating" Title="Rating" />
+            <PropertyColumn Property="x => x.DurationMinutes" Title="Duration (min)" />
+            <PropertyColumn Property="x => x.Language" Title="Language" />
+            <PropertyColumn Property="x => x.CountryOfOrigin" Title="Origin" />
+            <PropertyColumn Property="x => x.AgeRestriction" Title="Age" />
+            <PropertyColumn Property="x => x.Synopsis" Title="Synopsis" />
+            <PropertyColumn Property="x => x.IsStreamingAvailable" Title="Streaming">
+                <CellTemplate>
+                    @(context.Item.IsStreamingAvailable ? "Yes" : "No")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.MainActor" Title="Main Actor" />
+            <PropertyColumn Property="x => x.LastViewed" Title="Last Viewed">
+                <CellTemplate>
+                    @context.Item.LastViewed.ToShortDateString()
+                </CellTemplate>
+            </PropertyColumn>
+        </Columns>
+
+        <PagerContent>
+            <MudDataGridPager T="EntertainmentModel" />
+        </PagerContent>
+    </MudDataGrid>
+}
+
+
+@code {
+
+    private bool isLoading = false;
+
+    private IEnumerable<EntertainmentModel> entertainmentData = [];
+
+    RegionInfo? regionInfo = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+
+            int Quantity = await _localStorage.GetItemAsync<int>("quantity");
+
+            string? Language = await _localStorage.GetItemAsync<string>("selectedLanguage");
+
+            await Task.Delay(1000);
+
+            entertainmentData = await _entertainmentFaker.GenerateEntertainmentAsync(Quantity, Language!);
+
+            Language = Language!.ReplaceLanguage(Language!);
+
+            regionInfo = new RegionInfo(Language);
+
+            isLoading = false;
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add(ex.Message, MudBlazor.Severity.Error);
+            entertainmentData = Enumerable.Empty<EntertainmentModel>();
+        }
+        await Task.CompletedTask;
+
+    }
+
+    private async Task ExportCsv()
+    {
+        try
+        {
+            await _fileExporterService.ExportCsvAsync(entertainmentData, "Entertainment");
+
+            _snackbar.Add("CSV file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting CSV: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportXlsx()
+    {
+        try
+        {
+            await _fileExporterService.ExportXlsxAsync(entertainmentData, "Entertainment");
+
+            _snackbar.Add("XLSX file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting Excel: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportSql()
+    {
+        try
+        {
+            await _fileExporterService.ExportSqlAsync(entertainmentData, "Entertainment");
+
+            _snackbar.Add("SQL script exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting SQL: {ex.Message}", Severity.Error);
+        }
+    }
+
+}

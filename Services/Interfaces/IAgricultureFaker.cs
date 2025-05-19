@@ -4,5 +4,5 @@ namespace FakeDataMaker.Services.Interfaces;
 
 public interface IAgricultureFaker
 {
-    IEnumerable<AgricultureModel> GenerateAgriculture(int quantity, string language);
+    Task<IEnumerable<AgricultureModel>> GenerateAgricultureAsync(int quantity, string language);
 }

@@ -13,7 +13,6 @@ public static class SqlExportHelper
 
         var sb = new StringBuilder();
 
-        // CREATE TABLE
         sb.AppendLine($"CREATE TABLE {tableName} (");
 
         foreach (var prop in props)
@@ -21,12 +20,10 @@ public static class SqlExportHelper
             sb.AppendLine($"  {prop.Name} {GetSqlType(prop)},");
         }
 
-        // remove última vírgula
         sb.Length -= 3;
         sb.AppendLine("\n));");
         sb.AppendLine();
 
-        // INSERTs
         foreach (var item in data)
         {
             var values = props.Select(p =>
@@ -47,7 +44,6 @@ public static class SqlExportHelper
 
         return sb.ToString();
     }
-
     private static string GetSqlType(PropertyInfo prop)
     {
         var type = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
@@ -62,7 +58,7 @@ public static class SqlExportHelper
             nameof(Double) => "FLOAT",
             nameof(Single) => "REAL",
             nameof(DateTime) => "DATETIME",
-            _ => "NVARCHAR(255)" // fallback
+            _ => "NVARCHAR(255)"
         };
     }
 }

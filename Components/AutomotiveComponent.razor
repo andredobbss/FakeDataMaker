@@ -1,22 +1,22 @@
 ﻿@inject IAutomotiveFaker automotiveFaker
-@inject ISnackbar Snackbar
-@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject ISnackbar _snackbar
+@inject ILocalStorageService _localStorage
 @inject IFileExporterService _fileExporterService
 
-@if (_automotiveData is null)
+@if (isLoading)
 {
     <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
 }
 else
 {
-    <MudDataGrid T="AutomotiveModel" Items="_automotiveData" Dense="true" Hover="true" Bordered="true" Striped="true" ColumnResizeMode="ResizeMode.Container">
+    <MudDataGrid T="AutomotiveModel" Items="automotiveData" Dense="true" Hover="true" Bordered="true" Striped="true" ColumnResizeMode="ResizeMode.Container">
         <ToolBarContent>
             <MudText Typo="Typo.h6">Automotive Data</MudText>
             <MudSpacer />
             <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
-                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Custom.FileFormats.FileDocument" Color="Color.Success" OnClick="ExportCsv">Export .csv</MudButton>
-                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Custom.FileFormats.FileExcel" Color="Color.Success" OnClick="ExportXlsx">Export .xlsx</MudButton>
-                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Custom.FileFormats.FileCode" Color="Color.Success" OnClick="ExportSql">Export .sql</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileDocument" OnClick="ExportCsv">Export .csv</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileExcel" OnClick="ExportXlsx">Export .xlsx</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileCode" OnClick="ExportSql">Export .sql</MudButton>
             </MudStack>
         </ToolBarContent>
 
@@ -61,9 +61,11 @@ else
 }
 
 
-
 @code {
-    IEnumerable<AutomotiveModel> _automotiveData = [];
+
+    private bool isLoading = false;
+
+    private IEnumerable<AutomotiveModel> automotiveData = [];
 
     RegionInfo? regionInfo = null;
 
@@ -71,22 +73,25 @@ else
     {
         try
         {
+            isLoading = true;
 
-            int Quantity = await LocalStorage.GetItemAsync<int>("quantity");
+            int Quantity = await _localStorage.GetItemAsync<int>("quantity");
 
-            string? Language = await LocalStorage.GetItemAsync<string>("selectedLanguage");
+            string? Language = await _localStorage.GetItemAsync<string>("selectedLanguage");
 
-            _automotiveData = automotiveFaker.GenerateAutomotive(Quantity, Language!).ToList();
+            automotiveData = await automotiveFaker.GenerateAutomotiveAsync(Quantity, Language!);
 
-            if (Language!.Contains("_"))
-                Language = Language.Replace("_", "-");
+            Language = Language!.ReplaceLanguage(Language!);
 
             regionInfo = new RegionInfo(Language);
+
+            isLoading = false;
+
         }
         catch (Exception ex)
         {
-            Snackbar.Add(ex.Message, MudBlazor.Severity.Error);
-            _automotiveData = Enumerable.Empty<AutomotiveModel>();
+            _snackbar.Add(ex.Message, MudBlazor.Severity.Error);
+            automotiveData = Enumerable.Empty<AutomotiveModel>();
         }
         await Task.CompletedTask;
     }
@@ -95,13 +100,13 @@ else
     {
         try
         {
-            await _fileExporterService.ExportCsvAsync(_automotiveData, "Automotive");
-           
-            Snackbar.Add("CSV file exported successfully!", Severity.Success);
+            await _fileExporterService.ExportCsvAsync(automotiveData, "Automotive");
+
+            _snackbar.Add("CSV file exported successfully!", Severity.Success);
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error exporting CSV: {ex.Message}", Severity.Error);
+            _snackbar.Add($"Error exporting CSV: {ex.Message}", Severity.Error);
         }
     }
 
@@ -109,13 +114,13 @@ else
     {
         try
         {
-            await _fileExporterService.ExportXlsxAsync(_automotiveData, "Automotive");
+            await _fileExporterService.ExportXlsxAsync(automotiveData, "Automotive");
 
-            Snackbar.Add("XLSX file exported successfully!", Severity.Success);
+            _snackbar.Add("XLSX file exported successfully!", Severity.Success);
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error exporting Excel: {ex.Message}", Severity.Error);
+            _snackbar.Add($"Error exporting Excel: {ex.Message}", Severity.Error);
         }
     }
 
@@ -123,13 +128,13 @@ else
     {
         try
         {
-            await _fileExporterService.ExportSqlAsync(_automotiveData, "Automotive");
+            await _fileExporterService.ExportSqlAsync(automotiveData, "Automotive");
 
-            Snackbar.Add("SQL script exported successfully!", Severity.Success);
+            _snackbar.Add("SQL script exported successfully!", Severity.Success);
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error exporting SQL: {ex.Message}", Severity.Error);
+            _snackbar.Add($"Error exporting SQL: {ex.Message}", Severity.Error);
         }
     }
 

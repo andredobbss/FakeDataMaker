@@ -1,0 +1,141 @@
+﻿@inject IConsumerGoodsFaker _consumerGoodsFaker
+@inject ISnackbar _snackbar
+@inject ILocalStorageService _localStorage
+@inject IFileExporterService _fileExporterService
+
+@if (isLoading)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    <MudDataGrid T="ConsumerGoodsModel" Items="consumerGoodsData" Dense="true" Hover="true" Bordered="true" Striped="true" ColumnResizeMode="ResizeMode.Container">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Consumer Goods Data</MudText>
+            <MudSpacer />
+            <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileDocument" OnClick="ExportCsv">Export .csv</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileExcel" OnClick="ExportXlsx">Export .xlsx</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileCode" OnClick="ExportSql">Export .sql</MudButton>
+            </MudStack>
+        </ToolBarContent>
+
+        <Columns>
+            <PropertyColumn Property="x => x.ProductName" Title="Product" />
+            <PropertyColumn Property="x => x.Brand" Title="Brand" />
+            <PropertyColumn Property="x => x.Category" Title="Category" />
+            <PropertyColumn Property="x => x.SKU" Title="SKU" />
+            <PropertyColumn Property="x => x.Price" Title="Price">
+                <CellTemplate>
+                    @($"{regionInfo.CurrencySymbol} {context.Item.Price:N2}")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.StockQuantity" Title="Stock" />
+            <PropertyColumn Property="x => x.ManufactureDate" Title="MFG">
+                <CellTemplate>
+                    @context.Item.ManufactureDate.ToShortDateString()
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.ExpirationDate" Title="EXP">
+                <CellTemplate>
+                    @context.Item.ExpirationDate.ToShortDateString()
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.OriginCountry" Title="Origin" />
+            <PropertyColumn Property="x => x.Supplier" Title="Supplier" />
+            <PropertyColumn Property="x => x.Barcode" Title="Barcode" />
+            <PropertyColumn Property="x => x.PackagingType" Title="Package" />
+            <PropertyColumn Property="x => x.Weight" Title="Weight" />
+            <PropertyColumn Property="x => x.IsRecyclable" Title="Recyclable">
+                <CellTemplate>
+                    @(context.Item.IsRecyclable ? "Yes" : "No")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.ProductStatus" Title="Status" />
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="ConsumerGoodsModel" />
+        </PagerContent>
+    </MudDataGrid>
+}
+
+
+@code {
+
+    private bool isLoading = false;
+
+    private IEnumerable<ConsumerGoodsModel> consumerGoodsData = [];
+
+    RegionInfo? regionInfo = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+
+            int Quantity = await _localStorage.GetItemAsync<int>("quantity");
+
+            string? Language = await _localStorage.GetItemAsync<string>("selectedLanguage");
+
+            await Task.Delay(1000);
+
+            consumerGoodsData = await _consumerGoodsFaker.GenerateConsumerGoodsAsync(Quantity, Language!);
+
+            Language = Language!.ReplaceLanguage(Language!);
+
+            regionInfo = new RegionInfo(Language);
+
+            isLoading = false;
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add(ex.Message, MudBlazor.Severity.Error);
+            consumerGoodsData = Enumerable.Empty<ConsumerGoodsModel>();
+        }
+        await Task.CompletedTask;
+
+    }
+
+    private async Task ExportCsv()
+    {
+        try
+        {
+            await _fileExporterService.ExportCsvAsync(consumerGoodsData, "ConsumerGoods");
+
+            _snackbar.Add("CSV file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting CSV: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportXlsx()
+    {
+        try
+        {
+            await _fileExporterService.ExportXlsxAsync(consumerGoodsData, "ConsumerGoods");
+
+            _snackbar.Add("XLSX file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting Excel: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportSql()
+    {
+        try
+        {
+            await _fileExporterService.ExportSqlAsync(consumerGoodsData, "ConsumerGoods");
+
+            _snackbar.Add("SQL script exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting SQL: {ex.Message}", Severity.Error);
+        }
+    }
+}

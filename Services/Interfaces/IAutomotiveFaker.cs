@@ -4,5 +4,5 @@ namespace FakeDataMaker.Services.Interfaces;
 
 public interface IAutomotiveFaker
 {
-    IEnumerable<AutomotiveModel> GenerateAutomotive(int quantity, string language);
+    Task<IEnumerable<AutomotiveModel>> GenerateAutomotiveAsync(int quantity, string language);
 }

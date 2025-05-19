@@ -4,5 +4,5 @@ namespace FakeDataMaker.Services.Interfaces;
 
 public interface IAerospaceFaker
 {
-    IEnumerable<AerospaceModel> GenerateAerospace(int quantity, string language);
+    Task<IEnumerable<AerospaceModel>> GenerateAerospaceAsync(int quantity, string language);
 }

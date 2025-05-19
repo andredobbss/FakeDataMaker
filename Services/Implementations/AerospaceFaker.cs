@@ -6,10 +6,9 @@ namespace FakeDataMaker.Services.Implementations;
 
 public class AerospaceFaker : IAerospaceFaker
 {
-    public IEnumerable<AerospaceModel> GenerateAerospace(int quantity, string language)
+    public async Task<IEnumerable<AerospaceModel>> GenerateAerospaceAsync(int quantity, string language)
     {
-        //Randomizer.Seed = new Random();
-        var faker = new Faker<AerospaceModel>(language)
+        var faker = new Faker<AerospaceModel>(language).StrictMode(true)
             .RuleFor(x => x.AircraftModel, f => f.Random.AlphaNumeric(8).ToUpper())
             .RuleFor(x => x.Manufacturer, f => f.Company.CompanyName())
             .RuleFor(x => x.EngineType, f => f.PickRandom("Turbojet", "Turbofan", "Turboprop", "Ramjet"))
@@ -26,6 +25,6 @@ public class AerospaceFaker : IAerospaceFaker
             .RuleFor(x => x.InProduction, f => f.Random.Bool())
             .RuleFor(x => x.Description, f => f.Lorem.Sentence());
 
-        return faker.Generate(quantity);
+        return await Task.FromResult(faker.Generate(quantity));
     }
 }

@@ -1,0 +1,142 @@
+﻿@inject IBiotechnologyFaker _biotechnologyFaker
+@inject ISnackbar _snackbar
+@inject ILocalStorageService _localStorage
+@inject IFileExporterService _fileExporterService
+
+@if (isLoading)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    <MudDataGrid T="BiotechnologyModel" Items="biotechData" Dense="true" Hover="true" Bordered="true" Striped="true" ColumnResizeMode="ResizeMode.Container">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Biotechnology Data</MudText>
+            <MudSpacer />
+            <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileDocument" OnClick="ExportCsv">Export .csv</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileExcel" OnClick="ExportXlsx">Export .xlsx</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileCode" OnClick="ExportSql">Export .sql</MudButton>
+            </MudStack>
+        </ToolBarContent>
+
+        <Columns>
+            <PropertyColumn Property="x => x.ResearchProject" Title="Research Project" />
+            <PropertyColumn Property="x => x.LeadScientist" Title="Lead Scientist" />
+            <PropertyColumn Property="x => x.Institution" Title="Institution" />
+            <PropertyColumn Property="x => x.StartDate" Title="Start Date">
+                <CellTemplate>
+                    @context.Item.StartDate.ToShortDateString()
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.LastUpdate" Title="Last Update">
+                <CellTemplate>
+                    @context.Item.LastUpdate.ToShortDateString()
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.FundingAmount" Title="Funding">
+                <CellTemplate>
+                    @($"{regionInfo.CurrencySymbol} {context.Item.FundingAmount:N2}")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.Status" Title="Status" />
+            <PropertyColumn Property="x => x.ExperimentPhase" Title="Experiment Phase" />
+            <PropertyColumn Property="x => x.Laboratory" Title="Laboratory" />
+            <PropertyColumn Property="x => x.GeneTarget" Title="Gene Target" />
+            <PropertyColumn Property="x => x.IsClinicalTrial" Title="Clinical Trial">
+                <CellTemplate>
+                    @(context.Item.IsClinicalTrial ? "Yes" : "No")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.TestSubjects" Title="Test Subjects" />
+            <PropertyColumn Property="x => x.Region" Title="Region" />
+            <PropertyColumn Property="x => x.RegulatoryBody" Title="Regulatory Body" />
+            <PropertyColumn Property="x => x.ResultSummary" Title="Result Summary" />
+        </Columns>
+
+        <PagerContent>
+            <MudDataGridPager T="BiotechnologyModel" />
+        </PagerContent>
+    </MudDataGrid>
+}
+
+
+@code {
+
+    private bool isLoading = false;
+
+    private IEnumerable<BiotechnologyModel> biotechData = [];
+
+    RegionInfo? regionInfo = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+
+            int Quantity = await _localStorage.GetItemAsync<int>("quantity");
+
+            string? Language = await _localStorage.GetItemAsync<string>("selectedLanguage");
+
+            await Task.Delay(1000);
+
+            biotechData = await _biotechnologyFaker.GenerateBiotechnologyAsync(Quantity, Language!);
+
+            Language = Language!.ReplaceLanguage(Language!);
+
+            regionInfo = new RegionInfo(Language);
+
+            isLoading = false;
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add(ex.Message, MudBlazor.Severity.Error);
+            biotechData = Enumerable.Empty<BiotechnologyModel>();
+        }
+        await Task.CompletedTask;
+
+    }
+
+    private async Task ExportCsv()
+    {
+        try
+        {
+            await _fileExporterService.ExportCsvAsync(biotechData, "Biotechnology");
+
+            _snackbar.Add("CSV file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting CSV: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportXlsx()
+    {
+        try
+        {
+            await _fileExporterService.ExportXlsxAsync(biotechData, "Biotechnology");
+
+            _snackbar.Add("XLSX file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting Excel: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportSql()
+    {
+        try
+        {
+            await _fileExporterService.ExportSqlAsync(biotechData, "Biotechnology");
+
+            _snackbar.Add("SQL script exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting SQL: {ex.Message}", Severity.Error);
+        }
+    }
+}

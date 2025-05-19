@@ -1,26 +1,40 @@
 ﻿@inherits LayoutComponentBase
 @inject IJSRuntime JS
+@inject NavigationManager Navigation
 
 
 <MudThemeProvider @bind-IsDarkMode="_isDarkMode" Theme=" _theme" />
 
 <MudPopoverProvider />
 
+<MudDialogProvider />
+
 <MudSnackbarProvider />
 
-<MudLayout>
+<MudLayout style="display: flex; flex-direction: column; height: 100%;">
     <MudAppBar Elevation="1" Color="Color.Inherit">
-        <MudText Typo="Typo.h5" Color="Color.Primary" Class="ml-5">Fake Data Maker</MudText>
+        <MudText Typo="Typo.h5" Color="Color.Primary" Class="ml-5" Style="cursor: pointer;" @onclick="@(() => Navigation.NavigateTo("/"))">
+            Fake Data Maker
+        </MudText>
         <MudSpacer />
-        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Default" Size="Size.Medium" Edge="Edge.End" Href="https://github.com/andredobbss" target="_blank" />
-        <MudIconButton Icon="@Icons.Custom.Brands.LinkedIn" Color="Color.Default" Size="Size.Medium" Edge="Edge.End" Href="https://www.linkedin.com/in/andre-dobbss" target="_blank" />
+        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Default" Size="Size.Medium" Edge="Edge.End" Href="https://github.com/andredobbss" Target="_blank" />
+        <MudIconButton Icon="@Icons.Custom.Brands.LinkedIn" Color="Color.Default" Size="Size.Medium" Edge="Edge.End" Href="https://www.linkedin.com/in/andre-dobbss" Target="_blank" />
     </MudAppBar>
-    <MudMainContent>
-        <MudContainer>
+
+    <MudMainContent style="display: flex; flex-direction: column; flex: 1;">
+        <MudContainer Class="mt-5" style="flex: 1;">
             @Body
         </MudContainer>
-    </MudMainContent>
 
+        <footer class="mt-auto">
+            <MudPaper Class="pa-4 mud-width-full text-center" Elevation="0" Square="true">
+                <MudText Typo="Typo.caption" Color="Color.Default">
+                    Fake Data Maker © 2025 — Developed by
+                    <MudLink Href="https://github.com/andredobbss" Target="_blank">andredobbss</MudLink>
+                </MudText>
+            </MudPaper>
+        </footer>
+    </MudMainContent>
 </MudLayout>
 
 @code {

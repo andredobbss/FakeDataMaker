@@ -1,0 +1,148 @@
+﻿@inject IEcommerceFaker _ecommerceFaker
+@inject ISnackbar _snackbar
+@inject ILocalStorageService _localStorage
+@inject IFileExporterService _fileExporterService
+
+@if (isLoading)
+{
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+}
+else
+{
+    <MudDataGrid T="EcommerceModel" Items="ecommerceData" Dense="true" Hover="true" Bordered="true" Striped="true" ColumnResizeMode="ResizeMode.Container">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">E-commerce Data</MudText>
+            <MudSpacer />
+            <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileDocument" OnClick="ExportCsv">Export .csv</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileExcel" OnClick="ExportXlsx">Export .xlsx</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileCode" OnClick="ExportSql">Export .sql</MudButton>
+            </MudStack>
+        </ToolBarContent>
+
+        <Columns>
+            <PropertyColumn Property="x => x.OrderId" Title="Order ID" />
+            <PropertyColumn Property="x => x.CustomerName" Title="Customer" />
+            <PropertyColumn Property="x => x.Email" Title="Email" />
+            <PropertyColumn Property="x => x.Product" Title="Product" />
+            <PropertyColumn Property="x => x.Quantity" Title="Qty" />
+            <PropertyColumn Property="x => x.Price" Title="Price">
+                <CellTemplate>
+                    @($"{regionInfo.CurrencySymbol} {context.Item.Price:N2}")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.Total" Title="Total">
+                <CellTemplate>
+                    @($"{regionInfo.CurrencySymbol} {context.Item.Total:N2}")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.PaymentMethod" Title="Payment" />
+            <PropertyColumn Property="x => x.OrderDate" Title="Order Date">
+                <CellTemplate>
+                    @context.Item.OrderDate.ToShortDateString()
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.DeliveryDate" Title="Delivery Date">
+                <CellTemplate>
+                    @context.Item.DeliveryDate.ToShortDateString()
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.OrderStatus" Title="Status" />
+            <PropertyColumn Property="x => x.ShippingAddress" Title="Address" />
+            <PropertyColumn Property="x => x.IsGift" Title="Gift?">
+                <CellTemplate>
+                    @(context.Item.IsGift ? "Yes" : "No")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.TrackingNumber" Title="Tracking" />
+            <PropertyColumn Property="x => x.Notes" Title="Notes" />
+        </Columns>
+
+        <PagerContent>
+            <MudDataGridPager T="EcommerceModel" />
+        </PagerContent>
+    </MudDataGrid>
+}
+
+
+@code {
+
+    private bool isLoading = false;
+
+    private IEnumerable<EcommerceModel> ecommerceData = [];
+
+    RegionInfo? regionInfo = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+
+            int Quantity = await _localStorage.GetItemAsync<int>("quantity");
+
+            string? Language = await _localStorage.GetItemAsync<string>("selectedLanguage");
+
+            await Task.Delay(1000);
+
+            ecommerceData = await _ecommerceFaker.GenerateEcommerceAsync(Quantity, Language!);
+
+            Language = Language!.ReplaceLanguage(Language!);
+
+            regionInfo = new RegionInfo(Language);
+
+            isLoading = false;
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add(ex.Message, MudBlazor.Severity.Error);
+            ecommerceData = Enumerable.Empty<EcommerceModel>();
+        }
+        await Task.CompletedTask;
+
+    }
+
+    private async Task ExportCsv()
+    {
+        try
+        {
+            await _fileExporterService.ExportCsvAsync(ecommerceData, "Ecommerce");
+
+            _snackbar.Add("CSV file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting CSV: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportXlsx()
+    {
+        try
+        {
+            await _fileExporterService.ExportXlsxAsync(ecommerceData, "Ecommerce");
+
+            _snackbar.Add("XLSX file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting Excel: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportSql()
+    {
+        try
+        {
+            await _fileExporterService.ExportSqlAsync(ecommerceData, "Ecommerce");
+
+            _snackbar.Add("SQL script exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting SQL: {ex.Message}", Severity.Error);
+        }
+    }
+
+
+}

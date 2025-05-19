@@ -1,0 +1,148 @@
+﻿@inject IHospitalityFaker _hospitalityFaker
+@inject ISnackbar _snackbar
+@inject ILocalStorageService _localStorage
+@inject IFileExporterService _fileExporterService
+
+@if (isLoading)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    <MudDataGrid T="HospitalityModel" Items="hospitalityData" Dense="true" Hover="true" Bordered="true" Striped="true" ColumnResizeMode="ResizeMode.Container">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Hospitality Data</MudText>
+            <MudSpacer />
+            <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileDocument" OnClick="ExportCsv">Export .csv</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileExcel" OnClick="ExportXlsx">Export .xlsx</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileCode" OnClick="ExportSql">Export .sql</MudButton>
+            </MudStack>
+        </ToolBarContent>
+
+        <Columns>
+            <PropertyColumn Property="x => x.GuestName" Title="Guest Name" />
+            <PropertyColumn Property="x => x.RoomNumber" Title="Room Number" />
+            <PropertyColumn Property="x => x.ReservationCode" Title="Reservation Code" />
+            <PropertyColumn Property="x => x.CheckInDate" Title="Check-In">
+                <CellTemplate>
+                    @context.Item.CheckInDate.ToShortDateString()
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.CheckOutDate" Title="Check-Out">
+                <CellTemplate>
+                    @context.Item.CheckOutDate.ToShortDateString()
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.RoomRate" Title="Room Rate">
+                <CellTemplate>
+                    @($"{regionInfo.CurrencySymbol} {context.Item.RoomRate:N2}")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.PaymentMethod" Title="Payment Method" />
+            <PropertyColumn Property="x => x.ServicePackage" Title="Service Package" />
+            <PropertyColumn Property="x => x.HotelBranch" Title="Hotel Branch" />
+            <PropertyColumn Property="x => x.Status" Title="Status" />
+            <PropertyColumn Property="x => x.IsVIP" Title="VIP Guest">
+                <CellTemplate>
+                    @(context.Item.IsVIP ? "Yes" : "No")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.CountryOfOrigin" Title="Country" />
+            <PropertyColumn Property="x => x.ContactEmail" Title="Email" />
+            <PropertyColumn Property="x => x.BookingDate" Title="Booking Date">
+                <CellTemplate>
+                    @context.Item.BookingDate.ToShortDateString()
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.NightsStayed" Title="Nights Stayed" />
+        </Columns>
+
+        <PagerContent>
+            <MudDataGridPager T="HospitalityModel" />
+        </PagerContent>
+    </MudDataGrid>
+}
+
+
+@code {
+
+    private bool isLoading = false;
+
+    private IEnumerable<HospitalityModel> hospitalityData = [];
+
+    RegionInfo? regionInfo = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+
+            int Quantity = await _localStorage.GetItemAsync<int>("quantity");
+
+            string? Language = await _localStorage.GetItemAsync<string>("selectedLanguage");
+
+            await Task.Delay(1000);
+
+            hospitalityData = await _hospitalityFaker.GenerateHospitalityAsync(Quantity, Language!);
+
+            Language = Language!.ReplaceLanguage(Language!);
+
+            regionInfo = new RegionInfo(Language);
+
+            isLoading = false;
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add(ex.Message, MudBlazor.Severity.Error);
+            hospitalityData = Enumerable.Empty<HospitalityModel>();
+        }
+        await Task.CompletedTask;
+
+    }
+
+    private async Task ExportCsv()
+    {
+        try
+        {
+            await _fileExporterService.ExportCsvAsync(hospitalityData, "Hospitality");
+
+            _snackbar.Add("CSV file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting CSV: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportXlsx()
+    {
+        try
+        {
+            await _fileExporterService.ExportXlsxAsync(hospitalityData, "Hospitality");
+
+            _snackbar.Add("XLSX file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting Excel: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportSql()
+    {
+        try
+        {
+            await _fileExporterService.ExportSqlAsync(hospitalityData, "Hospitality");
+
+            _snackbar.Add("SQL script exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting SQL: {ex.Message}", Severity.Error);
+        }
+    }
+
+
+}

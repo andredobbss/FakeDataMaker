@@ -1,0 +1,149 @@
+﻿@inject IFinanceFaker _financeFaker
+@inject ISnackbar _snackbar
+@inject ILocalStorageService _localStorage
+@inject IFileExporterService _fileExporterService
+
+@if (isLoading)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    <MudDataGrid T="FinanceModel" Items="financeData" Dense="true" Hover="true" Bordered="true" Striped="true" ColumnResizeMode="ResizeMode.Container">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Finance Data</MudText>
+            <MudSpacer />
+            <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileDocument" OnClick="ExportCsv">Export .csv</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileExcel" OnClick="ExportXlsx">Export .xlsx</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileCode" OnClick="ExportSql">Export .sql</MudButton>
+            </MudStack>
+        </ToolBarContent>
+        <Columns>
+            <PropertyColumn Property="x => x.AccountHolderName" Title="Holder" />
+            <PropertyColumn Property="x => x.AccountNumber" Title="Account #" />
+            <PropertyColumn Property="x => x.BankName" Title="Bank" />
+            <PropertyColumn Property="x => x.AccountType" Title="Type" />
+            <PropertyColumn Property="x => x.Currency" Title="Currency" />
+            <PropertyColumn Property="x => x.Balance" Title="Balance">
+                <CellTemplate>
+                    @($"{regionInfo.CurrencySymbol} {context.Item.Balance:N2}")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.MonthlyIncome" Title="Income" >
+                <CellTemplate>
+                    @($"{regionInfo.CurrencySymbol} {context.Item.MonthlyIncome:N2}")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.MonthlyExpense" Title="Expense">
+                <CellTemplate>
+                    @($"{regionInfo.CurrencySymbol} {context.Item.MonthlyExpense:N2}")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.InvestmentType" Title="Investment" />
+            <PropertyColumn Property="x => x.InvestmentAmount" Title="Invested">
+                <CellTemplate>
+                    @($"{regionInfo.CurrencySymbol} {context.Item.InvestmentAmount:N2}")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.CreditScoreCategory" Title="Credit Score Category" />
+            <PropertyColumn Property="x => x.CreditScore" Title="Credit Score" />
+            <PropertyColumn Property="x => x.AccountOpenedDate" Title="Opened">
+                <CellTemplate>
+                    @(context.Item.AccountOpenedDate.ToShortDateString())
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.LastTransactionDate" Title="Last Tx">
+                <CellTemplate>
+                    @(context.Item.LastTransactionDate.ToShortDateString())
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.FinancialAdvisor" Title="Advisor" />
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="FinanceModel" />
+        </PagerContent>
+    </MudDataGrid>
+
+}
+
+@code {
+
+    private bool isLoading = false;
+
+    private IEnumerable<FinanceModel> financeData = [];
+
+    RegionInfo? regionInfo = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+
+            int Quantity = await _localStorage.GetItemAsync<int>("quantity");
+
+            string? Language = await _localStorage.GetItemAsync<string>("selectedLanguage");
+
+            await Task.Delay(1000);
+
+            financeData = await _financeFaker.GenerateFinanceAsync(Quantity, Language!);
+
+            Language = Language!.ReplaceLanguage(Language!);
+
+            regionInfo = new RegionInfo(Language);
+
+            isLoading = false;
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add(ex.Message, MudBlazor.Severity.Error);
+            financeData = Enumerable.Empty<FinanceModel>();
+        }
+        await Task.CompletedTask;
+
+    }
+
+    private async Task ExportCsv()
+    {
+        try
+        {
+            await _fileExporterService.ExportCsvAsync(financeData, "Finance");
+
+            _snackbar.Add("CSV file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting CSV: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportXlsx()
+    {
+        try
+        {
+            await _fileExporterService.ExportXlsxAsync(financeData, "Finance");
+
+            _snackbar.Add("XLSX file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting Excel: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportSql()
+    {
+        try
+        {
+            await _fileExporterService.ExportSqlAsync(financeData, "Finance");
+
+            _snackbar.Add("SQL script exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting SQL: {ex.Message}", Severity.Error);
+        }
+    }
+
+}

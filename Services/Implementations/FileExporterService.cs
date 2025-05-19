@@ -31,25 +31,25 @@ public class FileExporterService : IFileExporterService
     }
     public async Task ExportXlsxAsync<T>(IEnumerable<T> data, string baseFileName)
     {
+        using var memoryStream = new MemoryStream();
         using XLWorkbook wb = new();
         var ws = wb.AddWorksheet(baseFileName);
         ws.Cell(1, 1).InsertTable(data).Theme = XLTableTheme.TableStyleLight1;
         ws.Columns().AdjustToContents();
-
-        using var stream = new MemoryStream();
-        wb.SaveAs(stream);
-        stream.Position = 0;
+      
+        wb.SaveAs(memoryStream);
+        memoryStream.Position = 0;
 
         var fileName = $"{baseFileName}_export_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
-        await _downloadFileService.DownloadFile(fileName, stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        await _downloadFileService.DownloadFile(fileName, memoryStream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     }
     public async Task ExportSqlAsync<T>(IEnumerable<T> data, string baseFileName)
     {
         string sqlScript = data.ToSqlScript(baseFileName);
 
-        var fileName = $"{baseFileName}_export_{DateTime.Now:yyyyMMdd_HHmmss}.sql";
         var fileBytes = Encoding.UTF8.GetBytes(sqlScript);
-
+        var fileName = $"{baseFileName}_export_{DateTime.Now:yyyyMMdd_HHmmss}.sql";
+     
         await _downloadFileService.DownloadFile(fileName, fileBytes, "application/sql");
     }
 }

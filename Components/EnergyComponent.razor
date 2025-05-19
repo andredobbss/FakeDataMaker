@@ -1,0 +1,138 @@
+﻿@inject IEnergyFaker _energyFaker
+@inject ISnackbar _snackbar
+@inject ILocalStorageService _localStorage
+@inject IFileExporterService _fileExporterService
+
+@if (isLoading)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    <MudDataGrid T="EnergyModel" Items="energyData" Dense="true" Hover="true" Bordered="true" Striped="true" ColumnResizeMode="ResizeMode.Container">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Energy Data</MudText>
+            <MudSpacer />
+            <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileDocument" OnClick="ExportCsv">Export .csv</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileExcel" OnClick="ExportXlsx">Export .xlsx</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileCode" OnClick="ExportSql">Export .sql</MudButton>
+            </MudStack>
+        </ToolBarContent>
+
+        <Columns>
+            <PropertyColumn Property="x => x.CompanyName" Title="Company" />
+            <PropertyColumn Property="x => x.EnergyType" Title="Type" />
+            <PropertyColumn Property="x => x.Country" Title="Country" />
+            <PropertyColumn Property="x => x.Region" Title="Region" />
+            <PropertyColumn Property="x => x.GridCode" Title="Grid Code" />
+            <PropertyColumn Property="x => x.PlantName" Title="Plant" />
+            <PropertyColumn Property="x => x.OutputMW" Title="MW Output" />
+            <PropertyColumn Property="x => x.NumberOfTurbines" Title="# Turbines" />
+            <PropertyColumn Property="x => x.CommissionDate" Title="Commissioned">
+                <CellTemplate>
+                    @context.Item.CommissionDate.ToShortDateString()
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.Operator" Title="Operator" />
+            <PropertyColumn Property="x => x.IsRenewable" Title="Renewable">
+                <CellTemplate>
+                    @(context.Item.IsRenewable ? "Yes" : "No")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.LicenseStatus" Title="License" />
+            <PropertyColumn Property="x => x.InspectionDate" Title="Last Inspection">
+                <CellTemplate>
+                    @context.Item.InspectionDate.ToShortDateString()
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.FuelSource" Title="Fuel Source" />
+            <PropertyColumn Property="x => x.MaintenanceCycle" Title="Maintenance" />
+        </Columns>
+
+        <PagerContent>
+            <MudDataGridPager T="EnergyModel" />
+        </PagerContent>
+    </MudDataGrid>
+}
+
+
+@code {
+
+    private bool isLoading = false;
+
+    private IEnumerable<EnergyModel> energyData = [];
+
+    RegionInfo? regionInfo = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+
+            int Quantity = await _localStorage.GetItemAsync<int>("quantity");
+
+            string? Language = await _localStorage.GetItemAsync<string>("selectedLanguage");
+
+            await Task.Delay(1000);
+
+            energyData = await _energyFaker.GenerateEnergyAsync(Quantity, Language!);
+
+            Language = Language!.ReplaceLanguage(Language!);
+
+            regionInfo = new RegionInfo(Language);
+
+            isLoading = false;
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add(ex.Message, MudBlazor.Severity.Error);
+            energyData = Enumerable.Empty<EnergyModel>();
+        }
+        await Task.CompletedTask;
+
+    }
+
+    private async Task ExportCsv()
+    {
+        try
+        {
+            await _fileExporterService.ExportCsvAsync(energyData, "Energy");
+
+            _snackbar.Add("CSV file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting CSV: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportXlsx()
+    {
+        try
+        {
+            await _fileExporterService.ExportXlsxAsync(energyData, "Energy");
+
+            _snackbar.Add("XLSX file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting Excel: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportSql()
+    {
+        try
+        {
+            await _fileExporterService.ExportSqlAsync(energyData, "Energy");
+
+            _snackbar.Add("SQL script exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting SQL: {ex.Message}", Severity.Error);
+        }
+    }
+}

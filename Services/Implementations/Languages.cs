@@ -7,7 +7,6 @@ public class Languages : ILanguages
     public IDictionary<string, string> GetLanguages() => new Dictionary<string, string>
         {
             { "Chinese", "zh_CN" },
-            { "English", "en" },
             { "English (Great Britain)" , "en_GB" },
             { "English (United States)", "en_US" },
             { "French", "fr" },

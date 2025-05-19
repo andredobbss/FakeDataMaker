@@ -1,0 +1,147 @@
+﻿@inject IRealEstateFaker _realEstateFaker
+@inject ISnackbar _snackbar
+@inject ILocalStorageService _localStorage
+@inject IFileExporterService _fileExporterService
+
+@if (isLoading)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    <MudDataGrid T="RealEstateModel" Items="realEstateData" Dense="true" Hover="true" Bordered="true" Striped="true" ColumnResizeMode="ResizeMode.Container">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Real Estate Listings</MudText>
+            <MudSpacer />
+            <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileDocument" OnClick="ExportCsv">Export .csv</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileExcel" OnClick="ExportXlsx">Export .xlsx</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileCode" OnClick="ExportSql">Export .sql</MudButton>
+            </MudStack>
+        </ToolBarContent>
+
+        <Columns>
+            <PropertyColumn Property="x => x.PropertyId" Title="ID" />
+            <PropertyColumn Property="x => x.Address" Title="Address" />
+            <PropertyColumn Property="x => x.City" Title="City" />
+            <PropertyColumn Property="x => x.State" Title="State" />
+            <PropertyColumn Property="x => x.ZipCode" Title="ZIP" />
+            <PropertyColumn Property="x => x.PropertyType" Title="Type" />
+            <PropertyColumn Property="x => x.Price" Title="Price">
+                <CellTemplate>
+                    @($"{regionInfo.CurrencySymbol}{context.Item.Price:N0}")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.Bedrooms" Title="Bedrooms" />
+            <PropertyColumn Property="x => x.Bathrooms" Title="Bathrooms" />
+            <PropertyColumn Property="x => x.AreaSquareFeet" Title="Area (sq ft)">
+                <CellTemplate>
+                    @($"{context.Item.AreaSquareFeet:N2} sq ft")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.ListingDate" Title="Listed">
+                <CellTemplate>
+                    @context.Item.ListingDate.ToShortDateString()
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.AvailableFrom" Title="Available From">
+                <CellTemplate>
+                    @context.Item.AvailableFrom.ToShortDateString()
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.AgentName" Title="Agent" />
+            <PropertyColumn Property="x => x.IsFurnished" Title="Furnished">
+                <CellTemplate>
+                    @(context.Item.IsFurnished ? "Yes" : "No")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.Status" Title="Status" />
+        </Columns>
+
+        <PagerContent>
+            <MudDataGridPager T="RealEstateModel" />
+        </PagerContent>
+    </MudDataGrid>
+}
+
+
+@code {
+
+    private bool isLoading = false;
+
+    private IEnumerable<RealEstateModel> realEstateData = [];
+
+    RegionInfo? regionInfo = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+
+            int Quantity = await _localStorage.GetItemAsync<int>("quantity");
+
+            string? Language = await _localStorage.GetItemAsync<string>("selectedLanguage");
+
+            await Task.Delay(1000);
+
+            realEstateData = await _realEstateFaker.GenerateRealEstateAsync(Quantity, Language!);
+
+            Language = Language!.ReplaceLanguage(Language!);
+
+            regionInfo = new RegionInfo(Language);
+
+            isLoading = false;
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add(ex.Message, MudBlazor.Severity.Error);
+            realEstateData = Enumerable.Empty<RealEstateModel>();
+        }
+        await Task.CompletedTask;
+
+    }
+
+    private async Task ExportCsv()
+    {
+        try
+        {
+            await _fileExporterService.ExportCsvAsync(realEstateData, "RealEstate");
+
+            _snackbar.Add("CSV file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting CSV: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportXlsx()
+    {
+        try
+        {
+            await _fileExporterService.ExportXlsxAsync(realEstateData, "RealEstate");
+
+            _snackbar.Add("XLSX file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting Excel: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportSql()
+    {
+        try
+        {
+            await _fileExporterService.ExportSqlAsync(realEstateData, "RealEstate");
+
+            _snackbar.Add("SQL script exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting SQL: {ex.Message}", Severity.Error);
+        }
+    }
+
+}

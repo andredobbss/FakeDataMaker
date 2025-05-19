@@ -1,0 +1,144 @@
+﻿@inject IHealthcareFaker _healthCareFaker
+@inject ISnackbar _snackbar
+@inject ILocalStorageService _localStorage
+@inject IFileExporterService _fileExporterService
+
+@if (isLoading)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    <MudDataGrid T="HealthcareModel" Items="healthcareData" Dense="true" Hover="true" Bordered="true" Striped="true" ColumnResizeMode="ResizeMode.Container">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Healthcare Data</MudText>
+            <MudSpacer />
+            <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileDocument" OnClick="ExportCsv">Export .csv</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileExcel" OnClick="ExportXlsx">Export .xlsx</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileCode" OnClick="ExportSql">Export .sql</MudButton>
+            </MudStack>
+        </ToolBarContent>
+
+        <Columns>
+            <PropertyColumn Property="x => x.PatientName" Title="Patient Name" />
+            <PropertyColumn Property="x => x.PatientId" Title="Patient ID" />
+            <PropertyColumn Property="x => x.Age" Title="Age" />
+            <PropertyColumn Property="x => x.Gender" Title="Gender" />
+            <PropertyColumn Property="x => x.AdmissionDate" Title="Admission Date">
+                <CellTemplate>
+                    @context.Item.AdmissionDate.ToShortDateString()
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.Diagnosis" Title="Diagnosis" />
+            <PropertyColumn Property="x => x.Doctor" Title="Doctor" />
+            <PropertyColumn Property="x => x.Department" Title="Department" />
+            <PropertyColumn Property="x => x.RoomNumber" Title="Room" />
+            <PropertyColumn Property="x => x.TreatmentPlan" Title="Treatment" />
+            <PropertyColumn Property="x => x.TreatmentCost" Title="Cost">
+                <CellTemplate>
+                    @($"{regionInfo.CurrencySymbol} {context.Item.TreatmentCost:N2}")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.InsuranceProvider" Title="Insurance" />
+            <PropertyColumn Property="x => x.IsDischarged" Title="Discharged">
+                <CellTemplate>
+                    @(context.Item.IsDischarged ? "Yes" : "No")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.LastCheckupDate" Title="Last Checkup">
+                <CellTemplate>
+                    @context.Item.LastCheckupDate.ToShortDateString()
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.Notes" Title="Notes" />
+        </Columns>
+
+        <PagerContent>
+            <MudDataGridPager T="HealthcareModel" />
+        </PagerContent>
+    </MudDataGrid>
+}
+
+
+@code {
+
+    private bool isLoading = false;
+
+    private IEnumerable<HealthcareModel> healthcareData = [];
+
+    RegionInfo? regionInfo = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+
+            int Quantity = await _localStorage.GetItemAsync<int>("quantity");
+
+            string? Language = await _localStorage.GetItemAsync<string>("selectedLanguage");
+
+            await Task.Delay(1000);
+
+            healthcareData = await _healthCareFaker.GenerateHealthcareAsync(Quantity, Language!);
+
+            Language = Language!.ReplaceLanguage(Language!);
+
+            regionInfo = new RegionInfo(Language);
+
+            isLoading = false;
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add(ex.Message, MudBlazor.Severity.Error);
+            healthcareData = Enumerable.Empty<HealthcareModel>();
+        }
+        await Task.CompletedTask;
+
+    }
+
+    private async Task ExportCsv()
+    {
+        try
+        {
+            await _fileExporterService.ExportCsvAsync(healthcareData, "Healthcare");
+
+            _snackbar.Add("CSV file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting CSV: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportXlsx()
+    {
+        try
+        {
+            await _fileExporterService.ExportXlsxAsync(healthcareData, "Healthcare");
+
+            _snackbar.Add("XLSX file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting Excel: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportSql()
+    {
+        try
+        {
+            await _fileExporterService.ExportSqlAsync(healthcareData, "Healthcare");
+
+            _snackbar.Add("SQL script exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting SQL: {ex.Message}", Severity.Error);
+        }
+    }
+
+
+}

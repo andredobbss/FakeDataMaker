@@ -1,0 +1,94 @@
+﻿@inject IDialogService dialogService
+
+
+<MudDialog>
+    <DialogContent>
+@*         <MudText Typo="Typo.h6">Supported Sectors</MudText> *@
+        <MudDataGrid T="Sector" Items="sectors" Dense="true" Hover="true" Bordered="true" ColumnResizeMode="ResizeMode.Container">
+            <Columns>
+                <PropertyColumn Property="s => s.DisplayName" Title="Display Name" />
+                <PropertyColumn Property="s => s.InternalValue" Title="Internal Code" />
+                <PropertyColumn Property="s => s.Justification" Title="Justification" />
+            </Columns>
+        </MudDataGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Secondary" OnClick="Cancel">
+            Close
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private IEnumerable<Sector> sectors = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        GetSectors();
+        await Task.CompletedTask;
+    }
+
+    private IEnumerable<Sector> GetSectors()
+    {
+        return sectors = new List<Sector>
+       {
+           new("Accounting", "accounting", "Covers financial reporting, auditing, and tax management."),
+           new("Aerospace", "aerospace", "Critical for defense, transport, and technological innovation."),
+           new("Agriculture", "agriculture", "Vital for food production and agro-industrial economy."),
+           new("Automotive", "automotive", "Focus on vehicle manufacturing, supply chain, and automation."),
+           new("Biotechnology", "biotechnology", "Sector in rise focusing on research, health, and genetic innovation."),
+           new("Civil Construction", "civilConstruction", "Key for infrastructure, housing, and development projects."),
+           new("Consumer Goods", "consumerGoods", "Targets products for daily consumer use and retail flow."),
+           new("Contability", "contability", "Handles bookkeeping and financial control activities."),
+           new("Cybersecurity", "cybersecurity", "Current and essential for data protection and digital infrastructure."),
+           new("E-commerce", "ecommerce", "Retail evolution with digital-first dynamics."),
+           new("Economy", "economy", "Analyzes financial systems, indicators, and economic behavior."),
+           new("Education", "education", "Involves teaching, learning technologies, and academic management."),
+           new("Energy", "energy", "Covers renewable and non-renewable energy production and distribution."),
+           new("Entertainment", "entertainment", "Includes games, movies, shows, and cultural events."),
+           new("Environmental Services", "environmental", "Focuses on sustainability, recycling, and environmental monitoring."),
+           new("Finance", "finance", "Includes banks, investments, and financial planning."),
+           new("Food", "food", "Covers production, distribution, and food safety."),
+           new("Government / Public Sector", "publicSector", "Enables use cases for public policy, services, education, etc."),
+           new("Healthcare", "healthcare", "Deals with hospitals, diagnostics, and medical innovation."),
+           new("Hospitality", "hospitality", "Hotels, tourism, customer experience management."),
+           new("Information Technology", "informationTechnology", "General IT systems, software, infrastructure, and services."),
+           new("Insurance", "insurance", "Data- and risk-driven sector with automation potential."),
+           new("Legal Services", "legalServices", "Law firms, courts, and legal process management."),
+           new("Logistics", "logistics", "Covers supply chain, warehousing, and delivery services."),
+           new("Manufacturing", "manufacturing", "Involves production lines, industrial automation, and process control."),
+           new("Marketing", "marketing", "Campaign management, branding, digital strategies."),
+           new("Media & Publishing", "mediaPublishing", "Content production and distribution (digital and print)."),
+           new("Mining", "mining", "Primary sector focused on mineral extraction and processing."),
+           new("Nonprofit / NGO", "nonprofit", "Use cases with social impact and organizational transparency."),
+           new("Real Estate", "realState", "Property management, brokerage, and real estate analytics."),
+           new("Retail", "retail", "Physical and online commerce, customer behavior analytics."),
+           new("Sports & Recreation", "sportsRecreation", "Events, athletes, performance, fan engagement."),
+           new("Telecommunications", "telecommunications", "Vital for digital infrastructure and connectivity."),
+           new("Transportation", "transportation", "Passenger and cargo transit, logistics, route optimization.")
+       };
+    }
+
+    public class Sector
+    {
+        public Sector(string displayName, string internalValue, string justification)
+        {
+            DisplayName = displayName;
+            InternalValue = internalValue;
+            Justification = justification;
+        }
+
+        public string DisplayName { get; set; }
+        public string InternalValue { get; set; }
+        public string Justification { get; set; }
+    }
+
+
+}
+

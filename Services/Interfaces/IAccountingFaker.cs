@@ -4,5 +4,5 @@ namespace FakeDataMaker.Services.Interfaces;
 
 public interface IAccountingFaker
 {
-    IEnumerable<AccountingModel> GenerateAccounting(int quantity, string language);
+    Task<IEnumerable<AccountingModel>> GenerateAccountingAsync(int quantity, string language);
 }

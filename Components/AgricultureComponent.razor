@@ -1,23 +1,23 @@
 ﻿@inject IAgricultureFaker _agricultureFaker
-@inject ISnackbar Snackbar
-@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject ISnackbar _snackbar
+@inject ILocalStorageService _localStorage
 @inject IFileExporterService _fileExporterService
 
-@if (_agricultureData is null)
+@if (isLoading)
 {
     <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
 }
 else
 {
 
-    <MudDataGrid T="AgricultureModel" Items="_agricultureData" Dense="true" Hover="true" Bordered="true" Striped="true" ColumnResizeMode="ResizeMode.Container">
+    <MudDataGrid T="AgricultureModel" Items="agricultureData" Dense="true" Hover="true" Bordered="true" Striped="true" ColumnResizeMode="ResizeMode.Container">
         <ToolBarContent>
             <MudText Typo="Typo.h6">Agriculture Data</MudText>
             <MudSpacer />
             <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
-                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Custom.FileFormats.FileDocument" Color="Color.Success" OnClick="ExportCsv">Export .csv</MudButton>
-                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Custom.FileFormats.FileExcel" Color="Color.Success" OnClick="ExportXlsx">Export .xlsx</MudButton>
-                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Custom.FileFormats.FileCode" Color="Color.Success" OnClick="ExportSql">Export .sql</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileDocument" OnClick="ExportCsv">Export .csv</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileExcel" OnClick="ExportXlsx">Export .xlsx</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileCode" OnClick="ExportSql">Export .sql</MudButton>
             </MudStack>
         </ToolBarContent>
         
@@ -72,12 +72,12 @@ else
 
 }
 
+
 @code
 {
+    private bool isLoading = false;
 
-
-
-    private IEnumerable<AgricultureModel> _agricultureData = [];
+    private IEnumerable<AgricultureModel> agricultureData = [];
 
     RegionInfo? regionInfo = null;
 
@@ -85,22 +85,26 @@ else
     {
         try
         {
+            isLoading = true;
 
-            int Quantity = await LocalStorage.GetItemAsync<int>("quantity");
+            int Quantity = await _localStorage.GetItemAsync<int>("quantity");
 
-            string? Language = await LocalStorage.GetItemAsync<string>("selectedLanguage");
+            string? Language = await _localStorage.GetItemAsync<string>("selectedLanguage");
 
-            _agricultureData = _agricultureFaker.GenerateAgriculture(Quantity, Language!).ToList();
+            await Task.Delay(1000);
 
-            if (Language!.Contains("_"))
-                Language = Language.Replace("_", "-");
+            agricultureData = await _agricultureFaker.GenerateAgricultureAsync(Quantity, Language!);
+
+            Language = Language!.ReplaceLanguage(Language!);
 
             regionInfo = new RegionInfo(Language);
+
+            isLoading = false;
         }
         catch (Exception ex)
         {
-            Snackbar.Add(ex.Message, MudBlazor.Severity.Error);
-            _agricultureData = Enumerable.Empty<AgricultureModel>();
+            _snackbar.Add(ex.Message, MudBlazor.Severity.Error);
+            agricultureData = Enumerable.Empty<AgricultureModel>();
         }
         await Task.CompletedTask;
     }
@@ -109,13 +113,13 @@ else
     {
         try
         {
-            await _fileExporterService.ExportCsvAsync(_agricultureData, "Agriculture");
+            await _fileExporterService.ExportCsvAsync(agricultureData, "Agriculture");
             
-            Snackbar.Add("CSV file exported successfully!", Severity.Success);
+            _snackbar.Add("CSV file exported successfully!", Severity.Success);
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error exporting CSV: {ex.Message}", Severity.Error);
+            _snackbar.Add($"Error exporting CSV: {ex.Message}", Severity.Error);
         }
     }
 
@@ -123,13 +127,13 @@ else
     {
         try
         {
-            await _fileExporterService.ExportXlsxAsync(_agricultureData, "Agriculture");
+            await _fileExporterService.ExportXlsxAsync(agricultureData, "Agriculture");
 
-            Snackbar.Add("XLSX file exported successfully!", Severity.Success);
+            _snackbar.Add("XLSX file exported successfully!", Severity.Success);
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error exporting Excel: {ex.Message}", Severity.Error);
+            _snackbar.Add($"Error exporting Excel: {ex.Message}", Severity.Error);
         }
     }
 
@@ -137,13 +141,13 @@ else
     {
         try
         {
-            await _fileExporterService.ExportSqlAsync(_agricultureData, "Agriculture");
+            await _fileExporterService.ExportSqlAsync(agricultureData, "Agriculture");
 
-            Snackbar.Add("SQL script exported successfully!", Severity.Success);
+            _snackbar.Add("SQL script exported successfully!", Severity.Success);
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error exporting SQL: {ex.Message}", Severity.Error);
+            _snackbar.Add($"Error exporting SQL: {ex.Message}", Severity.Error);
         }
     }
 

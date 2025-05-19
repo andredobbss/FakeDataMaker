@@ -1,0 +1,91 @@
+﻿@page "/"
+@layout MainLayout
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-12 pa-6">
+
+    <MudPaper Class="p-6 text-center pa-8" Elevation="4">
+        <MudText Typo="Typo.h3" Color="Color.Primary" GutterBottom="true">Fake Data Maker</MudText>
+        <MudText Typo="Typo.subtitle1" GutterBottom="true">
+            Generate realistic fake data by sector for testing, demos, and prototyping.
+        </MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" Href="/home">
+            Get Started
+        </MudButton>
+    </MudPaper>
+
+    <MudDivider Class="my-6" />
+
+    <MudGrid Gutter="Size.Medium">
+        <MudItem xs="12" sm="4">
+            <MudPaper Class="pa-8">
+                <MudIcon Icon="@Icons.Material.Filled.Domain" Size="Size.Large" Color="Color.Primary" />
+                <MudText Typo="Typo.h6">By Sector</MudText>
+                <MudText Typo="Typo.body2">Generate data for specific industries like Finance, Education, Health, and more.</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudPaper Class="pa-8">
+                <MudIcon Icon="@Icons.Material.Filled.Language" Size="Size.Large" Color="Color.Primary" />
+                <MudText Typo="Typo.h6">Multi-language</MudText>
+                <MudText Typo="Typo.body2">Support for multiple languages and cultural data formats.</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudPaper Class="pa-8">
+                <MudIcon Icon="@Icons.Material.Filled.DataObject" Size="Size.Large" Color="Color.Primary" />
+                <MudText Typo="Typo.h6">Export Options</MudText>
+                <MudText Typo="Typo.body2">Export your data to CSV, Excel, or SQL scripts in seconds.</MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    <MudDivider Class="my-6" />
+
+    <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-4">Supported Sectors</MudText>
+
+    <MudChips Color="Color.Primary">
+
+        <MudChip Color="Color.Primary" T="string" Text="Accounting"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Aerospace"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Agriculture"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Automotive"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Biotechnology"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Civil Construction"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Consumer Goods"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Contability"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Cybersecurity"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="E-commerce"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Economy"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Education"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Energy"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Entertainment"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Environmental Services"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Finance"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Food"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Government / Public Sector"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Healthcare"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Hospitality"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Information Technology"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Insurance"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Legal Services"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Logistics"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Manufacturing"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Marketing"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Media & Publishing"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Mining"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Nonprofit / NGO"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Real Estate"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Retail"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Sports & Recreation"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Telecommunications"></MudChip>
+        <MudChip Color="Color.Primary" T="string" Text="Transportation"></MudChip>
+       
+    </MudChips>
+
+</MudContainer>
+
+
+@code {
+
+    
+}

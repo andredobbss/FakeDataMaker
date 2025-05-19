@@ -1,0 +1,137 @@
+﻿@inject IFoodFaker _foodFaker
+@inject ISnackbar _snackbar
+@inject ILocalStorageService _localStorage
+@inject IFileExporterService _fileExporterService
+
+@if (isLoading)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    <MudDataGrid T="FoodModel" Items="foodData" Dense="true" Hover="true" Bordered="true" Striped="true" ColumnResizeMode="ResizeMode.Container">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Food Data</MudText>
+            <MudSpacer />
+            <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileDocument" OnClick="ExportCsv">Export .csv</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileExcel" OnClick="ExportXlsx">Export .xlsx</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileCode" OnClick="ExportSql">Export .sql</MudButton>
+            </MudStack>
+        </ToolBarContent>
+        <Columns>
+            <PropertyColumn Property="x => x.ProductName" Title="Product" />
+            <PropertyColumn Property="x => x.Category" Title="Category" />
+            <PropertyColumn Property="x => x.Brand" Title="Brand" />
+            <PropertyColumn Property="x => x.OriginCountry" Title="Country" />
+            <PropertyColumn Property="x => x.SupplierName" Title="Supplier" />
+            <PropertyColumn Property="x => x.ProductionDate" Title="Produced">
+                <CellTemplate>
+                    @(context.Item.ProductionDate.ToShortDateString())
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.ExpirationDate" Title="Expires">
+                <CellTemplate>
+                    @(context.Item.ExpirationDate.ToShortDateString())
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.Price" Title="Price">
+                <CellTemplate>
+                    @($"{regionInfo.CurrencySymbol} {context.Item.Price:N2}")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.WeightInKg" Title="Weight (kg)" />
+            <PropertyColumn Property="x => x.Calories" Title="Calories" />
+            <PropertyColumn Property="x => x.Ingredients" Title="Ingredients" />
+            <PropertyColumn Property="x => x.PackagingType" Title="Packaging" />
+            <PropertyColumn Property="x => x.StorageInstructions" Title="Storage" />
+            <PropertyColumn Property="x => x.Certification" Title="Certification" />
+            <PropertyColumn Property="x => x.NutritionalClaim" Title="Claim" />
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="FoodModel" />
+        </PagerContent>
+    </MudDataGrid>
+
+}
+
+@code {
+
+    private bool isLoading = false;
+
+    private IEnumerable<FoodModel> foodData = [];
+
+    RegionInfo? regionInfo = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+
+            int Quantity = await _localStorage.GetItemAsync<int>("quantity");
+
+            string? Language = await _localStorage.GetItemAsync<string>("selectedLanguage");
+
+            await Task.Delay(1000);
+
+            foodData = await _foodFaker.GenerateFoodAsync(Quantity, Language!);
+
+            Language = Language!.ReplaceLanguage(Language!);
+
+            regionInfo = new RegionInfo(Language);
+
+            isLoading = false;
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add(ex.Message, MudBlazor.Severity.Error);
+            foodData = Enumerable.Empty<FoodModel>();
+        }
+        await Task.CompletedTask;
+
+    }
+
+    private async Task ExportCsv()
+    {
+        try
+        {
+            await _fileExporterService.ExportCsvAsync(foodData, "Food");
+
+            _snackbar.Add("CSV file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting CSV: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportXlsx()
+    {
+        try
+        {
+            await _fileExporterService.ExportXlsxAsync(foodData, "Food");
+
+            _snackbar.Add("XLSX file exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting Excel: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ExportSql()
+    {
+        try
+        {
+            await _fileExporterService.ExportSqlAsync(foodData, "Food");
+
+            _snackbar.Add("SQL script exported successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error exporting SQL: {ex.Message}", Severity.Error);
+        }
+    }
+
+}
