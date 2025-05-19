@@ -3,10 +3,11 @@
 **Fake Data Maker** é uma aplicação web desenvolvida com Blazor WebAssembly e MudBlazor para geração de dados fictícios customizáveis por setor da economia, idioma e volume. É ideal para testes de sistemas, prototipação de dashboards e simulação de cenários.
 
 ## 🔧 Tecnologias Utilizadas
-- Blazor WebAssembly
-- MudBlazor
-- Bogus (para geração de dados fake)
-- Refit (futuramente para consumo de APIs)
+- [Blazor WebAssembly (Framework de front-end baseado em HTML, CSS e C#)](https://dotnet.microsoft.com/en-us/apps/aspnet/web-apps/blazor)
+- [MudBlazor (Biblioteca de componentes)](https://www.mudblazor.com/)
+- [Bogus (Para gerar de dados fake)](https://github.com/bchavez/Bogus)
+- [ClosedXML (Para gerar arquivos .xlsx)](https://docs.closedxml.io/en/latest/)
+- [CsvHelper (Para gerar arquivos .csv)](https://joshclose.github.io/CsvHelper/)
 
 ## 🌐 Funcionalidades
 - Geração de dados por setor (ex: contábil, aeroespacial)
@@ -30,7 +31,10 @@ git clone https://github.com/andredobbss/FakeDataMaker.git
 Navegador moderno (Chrome, Edge, Firefox)
 
 ## 📷 Capturas de Tela
-![image](https://github.com/user-attachments/assets/025548a2-647e-425c-9e35-8f67f2ddb3c2)
+
+![image](https://github.com/user-attachments/assets/a67d9358-9d1d-437d-9a21-c9b0d68a7eee)
+
+![image](https://github.com/user-attachments/assets/12bbe301-4729-46e1-9327-cc59c2d1b331)
 
 ## 📄 Licença
 Este projeto está licenciado sob a licença MIT.
