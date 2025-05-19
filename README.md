@@ -27,7 +27,7 @@ git clone https://github.com/andredobbss/FakeDataMaker.git
 3. Execute o projeto com dotnet run ou pelo IDE
 
 ## 🚨 Pré-requisitos
-.NET 9 SDK
+.NET 8 SDK
 Navegador moderno (Chrome, Edge, Firefox)
 
 ## 📷 Capturas de Tela
