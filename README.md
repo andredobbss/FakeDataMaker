@@ -1,5 +1,7 @@
 # Fake Data Maker
 
+![GitHub repo views](https://komarev.com/ghpvc/?username=andredobbss&repo=FastReportAPI&color=blue)
+
 **Fake Data Maker** é uma aplicação web desenvolvida com Blazor WebAssembly e MudBlazor para geração de dados fictícios customizáveis por setor da economia, idioma e volume. É ideal para testes de sistemas, prototipação de dashboards e simulação de cenários.
 
 ## 🔧 Tecnologias Utilizadas
