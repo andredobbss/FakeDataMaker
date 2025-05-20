@@ -14,9 +14,32 @@ else
             <MudText Typo="Typo.h6">Sports & Recreation Data</MudText>
             <MudSpacer />
             <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
-                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileDocument" OnClick="ExportCsv">Export .csv</MudButton>
-                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileExcel" OnClick="ExportXlsx">Export .xlsx</MudButton>
-                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileCode" OnClick="ExportSql">Export .sql</MudButton>
+                @if (isLoadingFileCsv)
+                {
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Small" />
+                }
+                else
+                {
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileDocument" OnClick="ExportCsv">Export .csv</MudButton>
+                }
+
+                @if (isLoadingFileXlsx)
+                {
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Small" />
+                }
+                else
+                {
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileExcel" OnClick="ExportXlsx">Export .xlsx</MudButton>
+                }
+
+                @if (isLoadingFileSql)
+                {
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Small" />
+                }
+                else
+                {
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Custom.FileFormats.FileCode" OnClick="ExportSql">Export .sql</MudButton>
+                }
             </MudStack>
         </ToolBarContent>
 
@@ -52,6 +75,12 @@ else
 
 
 @code {
+
+    private bool isLoadingFileCsv = false;
+
+    private bool isLoadingFileXlsx = false;
+
+    private bool isLoadingFileSql = false;
 
     private bool isLoading = false;
 
@@ -92,7 +121,13 @@ else
     {
         try
         {
+            isLoadingFileCsv = true;
+
+            await Task.Delay(1000);
+
             await _fileExporterService.ExportCsvAsync(sportsData, "SportsRecreation");
+
+            isLoadingFileCsv = false;
 
             _snackbar.Add("CSV file exported successfully!", Severity.Success);
         }
@@ -106,7 +141,13 @@ else
     {
         try
         {
+            isLoadingFileXlsx = true;
+
+            await Task.Delay(1000);
+
             await _fileExporterService.ExportXlsxAsync(sportsData, "SportsRecreation");
+
+            isLoadingFileXlsx = false;
 
             _snackbar.Add("XLSX file exported successfully!", Severity.Success);
         }
@@ -120,7 +161,13 @@ else
     {
         try
         {
+            isLoadingFileSql = true;
+
+            await Task.Delay(1000);
+
             await _fileExporterService.ExportSqlAsync(sportsData, "SportsRecreation");
+
+            isLoadingFileSql = false;
 
             _snackbar.Add("SQL script exported successfully!", Severity.Success);
         }
