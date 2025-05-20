@@ -30,6 +30,11 @@ git clone https://github.com/andredobbss/FakeDataMaker.git
 .NET 8 SDK
 Navegador moderno (Chrome, Edge, Firefox)
 
+## 🌐 Aplicação Publicada em:
+```bash
+https://fakedatamaker.pages.dev/
+```
+
 ## 📷 Capturas de Tela
 
 ![image](https://github.com/user-attachments/assets/a67d9358-9d1d-437d-9a21-c9b0d68a7eee)
