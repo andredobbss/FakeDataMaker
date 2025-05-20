@@ -17,6 +17,7 @@
   - `.xlsx`
   - `.sql` (com `CREATE TABLE` e `INSERTs`)
 - Interface responsiva e amigável com MudBlazor
+- Capacidade de gerar até 1.000.000 de registros
 
 ## ⚙️ Como Executar o Projeto
 1. Clone o repositório:
