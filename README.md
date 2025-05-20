@@ -9,7 +9,7 @@
 - [ClosedXML (Para gerar arquivos .xlsx)](https://docs.closedxml.io/en/latest/)
 - [CsvHelper (Para gerar arquivos .csv)](https://joshclose.github.io/CsvHelper/)
 
-## 🌐 Funcionalidades
+## 📝 Funcionalidades
 - Geração de dados por setor (ex: contábil, aeroespacial)
 - Suporte a múltiplos idiomas (ex: pt-BR, en-US, fr-FR)
 - Exportação para os formatos:
