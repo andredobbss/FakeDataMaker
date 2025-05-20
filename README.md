@@ -9,7 +9,7 @@
 - [ClosedXML (Para gerar arquivos .xlsx)](https://docs.closedxml.io/en/latest/)
 - [CsvHelper (Para gerar arquivos .csv)](https://joshclose.github.io/CsvHelper/)
 
-## 🌐 Funcionalidades
+## 📝 Funcionalidades
 - Geração de dados por setor (ex: contábil, aeroespacial)
 - Suporte a múltiplos idiomas (ex: pt-BR, en-US, fr-FR)
 - Exportação para os formatos:
@@ -17,6 +17,7 @@
   - `.xlsx`
   - `.sql` (com `CREATE TABLE` e `INSERTs`)
 - Interface responsiva e amigável com MudBlazor
+- Capacidade de gerar até 1.000.000 de registros
 
 ## ⚙️ Como Executar o Projeto
 1. Clone o repositório:
@@ -29,6 +30,11 @@ git clone https://github.com/andredobbss/FakeDataMaker.git
 ## 🚨 Pré-requisitos
 .NET 8 SDK
 Navegador moderno (Chrome, Edge, Firefox)
+
+## 🌐 Aplicação Publicada em:
+```bash
+https://fakedatamaker.pages.dev/
+```
 
 ## 📷 Capturas de Tela
 
