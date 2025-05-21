@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
   <PropertyGroup>
     <StaticWebAssetBasePath>FakeDataMaker</StaticWebAssetBasePath>
@@ -15,8 +15,8 @@
     <PackageReference Include="Bogus" Version="35.6.3" />
     <PackageReference Include="ClosedXML" Version="0.105.0" />
     <PackageReference Include="CsvHelper" Version="33.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.5" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.5" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.16" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.5" PrivateAssets="all" />
     <PackageReference Include="MudBlazor" Version="8.6.0" />
   </ItemGroup>
 
