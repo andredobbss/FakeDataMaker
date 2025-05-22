@@ -57,7 +57,11 @@ else
             <PropertyColumn Property="x => x.EndDate" Title="End Date">
                 <CellTemplate>@context.Item.EndDate.ToShortDateString()</CellTemplate>
             </PropertyColumn>
-            <PropertyColumn Property="x => x.AllocatedBudget" Title="Budget" />
+            <PropertyColumn Property="x => x.AllocatedBudget" Title="Budget">
+                <CellTemplate>
+                    @($"{regionInfo.CurrencySymbol} {context.Item.AllocatedBudget:N2}")
+                </CellTemplate>
+            </PropertyColumn>
             <PropertyColumn Property="x => x.StaffCount" Title="Staff Count" />
             <PropertyColumn Property="x => x.Status" Title="Status" />
             <PropertyColumn Property="x => x.DocumentationUrl" Title="Documentation" />
