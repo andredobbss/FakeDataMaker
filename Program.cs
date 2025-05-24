@@ -31,6 +31,8 @@ builder.Services.AddMudServices(config =>
     config.SnackbarConfiguration.HideTransitionDuration = 500;
     config.SnackbarConfiguration.ShowTransitionDuration = 500;
     config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
+    config.SnackbarConfiguration.SuccessIcon = Icons.Material.Filled.CheckCircleOutline;
+    config.SnackbarConfiguration.ErrorIcon = Icons.Material.Filled.ErrorOutline;
 });
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddBlazorDownloadFile();
