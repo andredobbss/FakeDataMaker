@@ -24,6 +24,6 @@ public class InsuranceFaker : IInsuranceFaker
             .RuleFor(x => x.IsAutoRenewal, f => f.Random.Bool())
             .RuleFor(x => x.AgentName, f => $"{f.Name.FirstName()} {f.Name.LastName()}");
 
-        return await Task.FromResult(Faker.Generate(quantity).AsEnumerable());
+        return await Task.FromResult(Faker.Generate(quantity));
     }
 }

@@ -32,6 +32,7 @@ public static class SqlExportHelper
                 return value switch
                 {
                     null => "NULL",
+                    Guid g => $"'{g}'",
                     string s => $"'{s.Replace("'", "''")}'",
                     DateTime dt => $"'{dt:yyyy-MM-dd HH:mm:ss}'",
                     bool b => b ? "1" : "0",
@@ -50,6 +51,7 @@ public static class SqlExportHelper
 
         return type.Name switch
         {
+            nameof(Guid) => "UNIQUEIDENTIFIER",
             nameof(String) => "NVARCHAR(255)",
             nameof(Int32) => "INT",
             nameof(Int64) => "BIGINT",
