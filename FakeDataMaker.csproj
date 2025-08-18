@@ -17,6 +17,7 @@
     <PackageReference Include="CsvHelper" Version="33.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.16" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.5" PrivateAssets="all" />
+  <PackageReference Include="Microsoft.NET.ILLink.Tasks" Version="8.0.19" />
     <PackageReference Include="MudBlazor" Version="8.7.0" />
   </ItemGroup>
 
